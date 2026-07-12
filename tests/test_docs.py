@@ -10,6 +10,8 @@ ENGLISH_DOC_REQUIREMENTS = {
         "Safe refusal policy",
         "Evidence policy",
         "Output location and file names",
+        "Installation",
+        "Usage",
     ],
     "docs/product-proposal.md": [
         "Processing flow",
@@ -41,6 +43,9 @@ ENGLISH_DOC_REQUIREMENTS = {
         "Evidence and provenance rules",
         "ICML official output fields and scales",
         "Configuration and offline mode",
+        "Installation and CLI help",
+        "Environment setup",
+        "Current offline/fake limitation",
         "How to invoke CLI and Python API",
         "How to extend or add a specialist without breaking contracts",
         "Testing strategy",
@@ -50,7 +55,7 @@ ENGLISH_DOC_REQUIREMENTS = {
 }
 
 KOREAN_DOC_REQUIREMENTS = {
-    "docs/ko/README.md": ["제품 제안 요약", "안전한 거절 정책", "증거 정책", "출력 위치와 파일 이름"],  # noqa: E501
+    "docs/ko/README.md": ["제품 제안 요약", "안전한 거절 정책", "증거 정책", "출력 위치와 파일 이름", "설치", "사용법"],  # noqa: E501
     "docs/ko/product-proposal.md": ["처리 흐름", "리뷰 품질 원칙", "사람이 최종 판단한다"],
     "docs/ko/operator-guide.md": ["환경 변수 매트릭스", "거절 사례", "오프라인/테스트 모드"],
     "docs/ko/evidence-policy.md": ["신뢰 경계", "OpenReview 근거 제한", "프롬프트 인젝션 처리"],
@@ -65,6 +70,9 @@ KOREAN_DOC_REQUIREMENTS = {
         "근거와 출처 규칙",
         "ICML 공식 출력 필드와 척도",
         "구성과 오프라인 모드",
+        "설치와 CLI 도움말",
+        "환경 설정",
+        "현재 오프라인/fake 제한",
         "CLI와 Python API 호출 방법",
         "계약을 깨지 않고 전문가를 확장하거나 추가하는 방법",
         "테스트 전략",
@@ -175,6 +183,64 @@ CONTRACT_PARITY_REQUIREMENTS = {
         (["Offline mode", "fake LLM", "pytest"], ["오프라인 모드", "fake", "pytest"]),
     ],
 }
+
+INSTALL_USAGE_REQUIREMENTS = [
+    (
+        "README.md",
+        "docs/ko/README.md",
+        [
+            "git clone",
+            "python3.11 -m venv .venv",
+            "source .venv/bin/activate",
+            "python -m pip install -e .",
+            "python -m pip install -e '.[ocr]'",
+            "brew install tesseract",
+            "sudo apt-get install tesseract-ocr",
+            "who-is-adam review --help",
+            "WHO_IS_ADAM_OFFLINE=true who-is-adam review paper.pdf",
+            "who-is-adam review notes.txt",
+            "reviews/a_study_of_adam/a_study_of_adam_review_1.md",
+        ],
+        [
+            "설치",
+            "사용법",
+            "Python 3.11+",
+            "fake LLM",
+            "계약 테스트",
+            "운영 품질의 ICML 리뷰",
+            "종료 코드 `0`",
+            "종료 코드 `2`",
+        ],
+    ),
+    (
+        "docs/skill-guide.md",
+        "docs/ko/skill-guide.md",
+        [
+            "Installation and CLI help",
+            "Environment setup",
+            "Current offline/fake limitation",
+            "ReviewConfig.model_validate",
+            "run_review(",
+            "`0`: review Markdown was saved",
+            "`2`: safe refusal",
+            "Desk-check refusal",
+            "not real paper-quality reviews",
+            "hosted production review generation",
+        ],
+        [
+            "설치와 CLI 도움말",
+            "환경 설정",
+            "현재 오프라인/fake 제한",
+            "ReviewConfig.model_validate",
+            "run_review(",
+            "`0`: 리뷰 Markdown이 저장",
+            "`2`: 리뷰 Markdown을 쓰기 전 안전한 거절",
+            "Desk-check refusal",
+            "실제 논문 품질 리뷰",
+            "hosted production review",
+        ],
+    ),
+]
 
 
 def _resolve_doc_links(root: Path, relative_path: str) -> set[str]:
@@ -302,3 +368,16 @@ def test_root_readme_does_not_depend_on_korean_required_phrases() -> None:
     leaked_phrases = [phrase for phrase in KOREAN_PHRASES if phrase in readme_text]
 
     assert not leaked_phrases, f"README.md should use English headings, found {leaked_phrases}"
+
+def test_installation_and_usage_guidance_stays_durable_and_translated() -> None:
+    root = Path(__file__).resolve().parents[1]
+
+    for english_path, korean_path, english_needles, korean_needles in INSTALL_USAGE_REQUIREMENTS:
+        english_text = _read(root, english_path)
+        korean_text = _read(root, korean_path)
+
+        missing_english = [needle for needle in english_needles if needle not in english_text]
+        missing_korean = [needle for needle in korean_needles if needle not in korean_text]
+
+        assert not missing_english, f"{english_path} missing install/use guidance {missing_english}"
+        assert not missing_korean, f"{korean_path} missing install/use translation {missing_korean}"

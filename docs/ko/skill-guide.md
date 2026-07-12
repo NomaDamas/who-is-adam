@@ -8,6 +8,29 @@ English original: [../skill-guide.md](../skill-guide.md).
 
 현재 패키지는 결정적 실행과 테스트를 위한 오프라인/가짜 제공자 경로를 지원한다. 호스팅 LLM 설정 필드는 `who_is_adam.config`에 있지만, 이 체크포인트에서는 호스팅 LLM 클라이언트가 연결되어 있지 않으므로 `run_review`는 호스팅 제공자에 대해 `ReviewOrchestrationError`를 발생시킨다.
 
+## 설치와 CLI 도움말
+
+GitHub 체크아웃에서 Python 3.11+ 가상 환경에 설치합니다.
+
+```bash
+git clone https://github.com/kwon/who-is-adam.git
+cd who-is-adam
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+python -m pip install -e .
+```
+
+OCR은 선택 사항입니다. `python -m pip install -e '.[ocr]'`로 extra를 켜고 Tesseract를 별도로 설치합니다(macOS는 `brew install tesseract`, Debian/Ubuntu Linux는 `sudo apt-get install tesseract-ocr`). `who-is-adam --help`와 `who-is-adam review --help`로 명령 표면을 확인합니다.
+
+## 환경 설정
+
+현재 구현된 경로에서는 `WHO_IS_ADAM_OFFLINE=true`를 설정하거나 `--offline`을 전달합니다. 모든 CLI 리뷰 실행에서 `--llm-policy`와 `--code-of-conduct-ack`를 명시합니다. Hosted 제공자 환경 변수는 `ReviewConfig`가 파싱할 수 있지만, 이 체크포인트에서 hosted production review 생성을 활성화하지 않습니다.
+
+## 현재 오프라인/fake 제한
+
+오프라인 fake 리뷰는 오케스트레이션, 거절, 렌더링, 출력 저장을 위한 결정적 계약 테스트입니다. 실제 논문 품질 리뷰가 아니며, hosted LLM 추론을 사용하지 않고 외부 제공자 근거 없음은 fixture 기반 운영 주장 대신 `unavailable`로 기록합니다.
+
 ## 입력/출력 계약
 
 CLI 입력은 로컬 PDF 하나와 필수 런타임 확인값이다.
@@ -127,6 +150,14 @@ result = run_review(
 )
 print(result.status, result.output_path)
 ```
+
+스크립트에서 해석할 CLI 종료 코드는 다음과 같습니다.
+
+- `0`: 리뷰 Markdown이 저장되었습니다. `output_path` 또는 `<output-dir>/<normalized_title>/` 아래의 버전 파일을 확인합니다.
+- `1`: 구성, 오케스트레이션, 또는 예기치 않은 런타임 실패입니다.
+- `2`: 리뷰 Markdown을 쓰기 전 안전한 거절입니다. 품질 게이트, 프롬프트 인젝션 게이트, 차단 ICML desk check가 여기에 포함됩니다.
+
+Desk-check refusal은 도구가 쪽수, 익명성, 파일, 범위, 읽기 가능성 같은 Main Track 제출 형식 또는 정책 조건에서 차단 사유를 찾았다는 뜻입니다. 연구 아이디어가 약하다는 판단이 아니므로, 리뷰 초안을 기대하기 전에 제출/런타임 조건을 고쳐야 합니다.
 
 ## 계약을 깨지 않고 전문가를 확장하거나 추가하는 방법
 

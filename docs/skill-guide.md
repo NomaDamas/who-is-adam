@@ -8,6 +8,29 @@ Korean translation: [ko/skill-guide.md](ko/skill-guide.md).
 
 The current package supports the offline/fake-provider path for deterministic operation and tests. Hosted LLM configuration fields exist in `who_is_adam.config`, but `run_review` raises `ReviewOrchestrationError` for hosted providers because hosted LLM clients are not wired in this checkpoint.
 
+## Installation and CLI help
+
+Install from the GitHub checkout in a Python 3.11+ virtual environment:
+
+```bash
+git clone https://github.com/kwon/who-is-adam.git
+cd who-is-adam
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+python -m pip install -e .
+```
+
+OCR is optional. Enable the extra with `python -m pip install -e '.[ocr]'` and install Tesseract separately (`brew install tesseract` on macOS, or `sudo apt-get install tesseract-ocr` on Debian/Ubuntu Linux). Verify the command surface with `who-is-adam --help` and `who-is-adam review --help`.
+
+## Environment setup
+
+For the current implemented path, set `WHO_IS_ADAM_OFFLINE=true` or pass `--offline`. Keep `--llm-policy` and `--code-of-conduct-ack` explicit on every CLI review run. Hosted provider environment variables may be parsed by `ReviewConfig`, but they do not enable hosted production review generation in this checkpoint.
+
+## Current offline/fake limitation
+
+Offline fake reviews are deterministic contract tests for orchestration, refusal, rendering, and output persistence. They are not real paper-quality reviews, do not use hosted LLM reasoning, and record unavailable external provider evidence as `unavailable` instead of fixture-backed production claims.
+
 ## Input/output contract
 
 CLI input is a single local PDF plus required runtime acknowledgements:
@@ -127,6 +150,14 @@ result = run_review(
 )
 print(result.status, result.output_path)
 ```
+
+CLI exit codes to interpret in scripts:
+
+- `0`: review Markdown was saved; inspect `output_path` or the versioned file under `<output-dir>/<normalized_title>/`.
+- `1`: configuration, orchestration, or unexpected runtime failure.
+- `2`: safe refusal before review Markdown is written, including quality gates, prompt-injection gates, or blocking ICML desk checks.
+
+Desk-check refusal means the tool found a blocking Main Track submission-format or policy condition, such as page, anonymity, file, scope, or readability constraints. It is not a claim that the research idea is weak; fix the submission/runtime condition before expecting a review draft.
 
 ## How to extend or add a specialist without breaking contracts
 

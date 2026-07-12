@@ -18,6 +18,45 @@ Core goals:
 
 Reviewers need to reason about paper quality, policy compliance, citation accuracy, and safe LLM usage at the same time. This tool does not replace reviewer judgment; it reduces repetitive evidence collection and formatting work. The design treats both PDF contents and external API responses as untrusted inputs so that instructions embedded in a paper, or errors in outside metadata, cannot override the review policy.
 
+## Installation
+
+Clone the repository and install the package in a Python 3.11+ virtual environment:
+
+```bash
+git clone https://github.com/kwon/who-is-adam.git
+cd who-is-adam
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+python -m pip install -e .
+```
+
+Optional OCR support requires the Python extra and the Tesseract system package:
+
+```bash
+python -m pip install -e '.[ocr]'
+```
+
+On macOS, install Tesseract with Homebrew:
+
+```bash
+brew install tesseract
+```
+
+On Debian/Ubuntu Linux, install Tesseract with apt:
+
+```bash
+sudo apt-get update
+sudo apt-get install tesseract-ocr
+```
+
+Verify the installed CLI is visible:
+
+```bash
+who-is-adam --help
+who-is-adam review --help
+```
+
 ## Quick start CLI
 
 The offline/fake-provider CLI path is implemented and can save contract-test review drafts without network access or real API keys.
@@ -34,6 +73,37 @@ Arguments:
 - `--code-of-conduct-ack`: explicit acknowledgement that the ICML code of conduct was checked and recorded in runtime metadata. Required.
 - `--offline`: run with the fake LLM and record external provider evidence as `unavailable` for test/offline mode.
 
+## Usage
+
+Run the currently implemented offline path with a local PDF. The fake LLM produces deterministic contract-test output; it is useful for integration checks, not for real paper-quality review.
+
+```bash
+WHO_IS_ADAM_OFFLINE=true who-is-adam review paper.pdf \
+  --output-dir reviews \
+  --llm-policy "ICML assigned LLM policy checked" \
+  --code-of-conduct-ack \
+  --offline
+```
+
+A successful run exits with code `0` and writes a versioned Markdown file such as:
+
+```text
+reviews/a_study_of_adam/a_study_of_adam_review_1.md
+```
+
+A safe refusal exits with code `2`, prints diagnostics, and does not write review Markdown. For example, a non-PDF input is refused before review generation:
+
+```bash
+who-is-adam review notes.txt --output-dir reviews --llm-policy "ICML assigned LLM policy checked" --code-of-conduct-ack --offline
+```
+
+Missing required runtime acknowledgements are CLI usage errors, for example:
+
+```bash
+who-is-adam review paper.pdf --output-dir reviews --offline
+```
+
+Hosted production review is not wired in this checkpoint. Offline fake reviews are contract tests for the implemented pipeline and must not be described as production-quality ICML reviews.
 Hosted LLM provider settings exist in the configuration schema, but hosted LLM clients are not wired in the current checkpoint. Do not treat the hosted-provider path as a documented production review path yet.
 
 ## Scope and limits

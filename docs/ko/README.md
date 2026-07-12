@@ -18,6 +18,45 @@ English default docs: [README](../../README.md), [product proposal](../product-p
 
 리뷰어는 논문 품질, 규정 준수, 인용 정확성, 안전한 LLM 사용 정책을 동시에 확인해야 합니다. 이 도구는 리뷰어의 판단을 대체하지 않고, 반복적인 근거 수집과 형식 검증을 보조합니다. 특히 PDF 본문과 외부 API 응답을 모두 신뢰할 수 없는 입력으로 취급해, 논문 안의 명령문이나 외부 메타데이터 오류가 리뷰 지침을 덮어쓰지 못하게 하는 것이 중요합니다.
 
+## 설치
+
+저장소를 복제하고 Python 3.11+ 가상 환경에 패키지를 설치합니다.
+
+```bash
+git clone https://github.com/kwon/who-is-adam.git
+cd who-is-adam
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+python -m pip install -e .
+```
+
+선택 OCR 지원에는 Python extra와 Tesseract 시스템 패키지가 모두 필요합니다.
+
+```bash
+python -m pip install -e '.[ocr]'
+```
+
+macOS에서는 Homebrew로 Tesseract를 설치합니다.
+
+```bash
+brew install tesseract
+```
+
+Debian/Ubuntu Linux에서는 apt로 Tesseract를 설치합니다.
+
+```bash
+sudo apt-get update
+sudo apt-get install tesseract-ocr
+```
+
+설치된 CLI가 보이는지 확인합니다.
+
+```bash
+who-is-adam --help
+who-is-adam review --help
+```
+
 ## 빠른 시작 CLI
 
 오프라인/fake 제공자 기반 CLI는 구현되어 있으며, 네트워크와 실제 API 키 없이 fake LLM으로 계약 검증용 리뷰 초안을 저장합니다. 외부 제공자 근거는 fixture로 대체하지 않고 `unavailable`로 기록합니다.
@@ -34,6 +73,37 @@ who-is-adam review paper.pdf --output-dir reviews --llm-policy "<assigned policy
 - `--code-of-conduct-ack`: ICML 행동 강령 확인을 런타임 메타데이터에 기록했다는 명시적 승인. 필수입니다.
 - `--offline`: fake LLM을 사용하고 외부 제공자 근거를 `unavailable`로 기록해 테스트/오프라인 모드로 실행합니다.
 
+## 사용법
+
+현재 구현된 오프라인 경로는 로컬 PDF로 실행합니다. fake LLM은 결정적인 계약 테스트 출력을 만들며, 통합 확인용이지 실제 논문 품질 리뷰가 아닙니다.
+
+```bash
+WHO_IS_ADAM_OFFLINE=true who-is-adam review paper.pdf \
+  --output-dir reviews \
+  --llm-policy "ICML assigned LLM policy checked" \
+  --code-of-conduct-ack \
+  --offline
+```
+
+성공한 실행은 종료 코드 `0`으로 끝나며 다음과 같은 버전 Markdown 파일을 씁니다.
+
+```text
+reviews/a_study_of_adam/a_study_of_adam_review_1.md
+```
+
+안전한 거절은 종료 코드 `2`로 끝나고 진단을 출력하며 리뷰 Markdown을 쓰지 않습니다. 예를 들어 PDF가 아닌 입력은 리뷰 생성 전에 거절됩니다.
+
+```bash
+who-is-adam review notes.txt --output-dir reviews --llm-policy "ICML assigned LLM policy checked" --code-of-conduct-ack --offline
+```
+
+필수 런타임 확인값이 없으면 CLI 사용 오류입니다. 예:
+
+```bash
+who-is-adam review paper.pdf --output-dir reviews --offline
+```
+
+현재 체크포인트에서는 hosted production review가 연결되어 있지 않습니다. 오프라인 fake 리뷰는 구현된 파이프라인의 계약 테스트이며, 운영 품질의 ICML 리뷰라고 설명하면 안 됩니다.
 Hosted LLM 제공자 설정은 환경 변수 스키마에 존재하지만, 현재 체크포인트에서는 hosted LLM 클라이언트가 아직 연결되지 않았으므로 운영 리뷰 품질을 보장하는 경로로 문서화하지 않습니다.
 
 ## 지원 범위와 제한
