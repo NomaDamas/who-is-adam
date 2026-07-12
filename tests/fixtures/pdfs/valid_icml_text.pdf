@@ -1,0 +1,93 @@
+%PDF-1.3
+%“Œ‹ž ReportLab Generated PDF document (opensource)
+1 0 obj
+<<
+/F1 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
+endobj
+3 0 obj
+<<
+/Contents 8 0 R /MediaBox [ 0 0 612 792 ] /Parent 7 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+4 0 obj
+<<
+/Contents 9 0 R /MediaBox [ 0 0 612 792 ] /Parent 7 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+5 0 obj
+<<
+/PageMode /UseNone /Pages 7 0 R /Type /Catalog
+>>
+endobj
+6 0 obj
+<<
+/Author (who-is-adam deterministic fixtures) /CreationDate (D:20260712134653+09'00') /Creator (tests.fixtures.build_fixtures) /Keywords () /ModDate (D:20260712134653+09'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (deterministic ICML review tests) /Title (valid_icml_text) /Trapped /False
+>>
+endobj
+7 0 obj
+<<
+/Count 2 /Kids [ 3 0 R 4 0 R ] /Type /Pages
+>>
+endobj
+8 0 obj
+<<
+/Length 5068
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+BT 1 0 0 1 72 740 Tm /F1 10 Tf 12 TL (Deterministic ICML Fixture for Safety Gates) Tj T*  T* (Abstract) Tj T*  T* (This paper studies deterministic review fixture generation. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls. This paper) Tj T* (studies deterministic review fixture generation. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls. This paper) Tj T* (studies deterministic review fixture generation. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls. This paper) Tj T* (studies deterministic review fixture generation. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls. This paper) Tj T* (studies deterministic review fixture generation. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls.) Tj T*  T* (Introduction) Tj T*  T* (The contribution is a compact controlled PDF with extractable text. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (The contribution is a compact controlled PDF with extractable text. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (The contribution is a compact controlled PDF with extractable text. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (The contribution is a compact controlled PDF with extractable text. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (The contribution is a compact controlled PDF with extractable text. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (The contribution is a compact controlled PDF with extractable text. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (The contribution is a compact controlled PDF with extractable text. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (The contribution is a compact controlled PDF with extractable text. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T*  T* (Table 1: Deterministic metrics for fixture extraction.) Tj T*  T* ET
+ 
+endstream
+endobj
+9 0 obj
+<<
+/Length 3084
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+BT 1 0 0 1 72 740 Tm /F1 10 Tf 12 TL (Method) Tj T*  T* (The method fixes every random seed and avoids live services. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls. The method) Tj T* (fixes every random seed and avoids live services. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls. The method) Tj T* (fixes every random seed and avoids live services. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls. The method) Tj T* (fixes every random seed and avoids live services. We evaluate a deterministic) Tj T* (representation learning method for robust tabular prediction. The method uses public) Tj T* (benchmark splits, fixed hyperparameters, and ablation studies to measure calibration,) Tj T* (accuracy, and reproducibility without external evidence or network calls.) Tj T*  T* (The objective is argmin_x f\(x\) = loss\(x\) + lambda regularizer\(x\) \(1\)) Tj T*  T* (Figure 1: A deterministic pipeline from PDF to structured review input.) Tj T*  T* (Experiments) Tj T*  T* (Experiments report stable branches for parser and quality gates. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (Experiments report stable branches for parser and quality gates. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T* (Experiments report stable branches for parser and quality gates. We evaluate a) Tj T* (deterministic representation learning method for robust tabular prediction. The method) Tj T* (uses public benchmark splits, fixed hyperparameters, and ablation studies to measure) Tj T* (calibration, accuracy, and reproducibility without external evidence or network calls.) Tj T*  T* (References) Tj T*  T* ([1] Smith, A. and Doe, B. Deterministic evaluation. ICML, 2024. doi:10.1234/example) Tj T*  T* ([2] Chen, C. Public benchmarks for review tools. arXiv:2401.12345, 2024.) Tj T*  T* ET
+ 
+endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000061 00000 n 
+0000000092 00000 n 
+0000000199 00000 n 
+0000000392 00000 n 
+0000000585 00000 n 
+0000000653 00000 n 
+0000000986 00000 n 
+0000001051 00000 n 
+0000006170 00000 n 
+trailer
+<<
+/ID 
+[<b5eb38d388f116ec011e26fb5a3b46e6><b5eb38d388f116ec011e26fb5a3b46e6>]
+% ReportLab generated PDF document -- digest (opensource)
+
+/Info 6 0 R
+/Root 5 0 R
+/Size 10
+>>
+startxref
+9305
+%%EOF
