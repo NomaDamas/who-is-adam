@@ -57,6 +57,51 @@ who-is-adam --help
 who-is-adam review --help
 ```
 
+## Agent Skill로 설치
+
+커스텀 Agent Skill 원본은 이 저장소의 `skills/who-is-adam/`에 있으며 `skills/who-is-adam/SKILL.md`가 진입점입니다. 이 스킬 디렉터리를 에이전트 런타임에 설치하고, Python 패키지/CLI도 별도로 설치해야 합니다. `SKILL.md` 파일은 오케스트레이션 계층입니다. 에이전트가 인자를 모으고, 리뷰 정책을 지키고, `who-is-adam` CLI를 호출하고, 출력을 해석하는 방법을 설명합니다. Python 패키지는 실제 `who-is-adam review` 명령을 제공합니다. 스킬만 복사하고 Python 패키지를 설치하지 않으면 에이전트가 실행할 CLI가 없습니다.
+
+프로젝트 로컬 GJC 설치:
+
+```bash
+mkdir -p .gjc/skills
+cp -R skills/who-is-adam .gjc/skills/who-is-adam
+python -m pip install -e .
+```
+
+사용자 전역 GJC 설치:
+
+```bash
+mkdir -p ~/.gjc/skills
+cp -R skills/who-is-adam ~/.gjc/skills/who-is-adam
+python -m pip install -e .
+```
+
+프로젝트 로컬 Claude 스타일 커스텀 스킬 설치:
+
+```bash
+mkdir -p .claude/skills
+cp -R skills/who-is-adam .claude/skills/who-is-adam
+python -m pip install -e .
+```
+
+사용자 전역 Claude 스타일 커스텀 스킬 설치:
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
+python -m pip install -e .
+```
+
+슬래시 스킬 호출을 지원하는 런타임에서는 다음처럼 실행합니다.
+
+```text
+/skill:who-is-adam /path/to/paper.pdf
+```
+
+슬래시 명령을 지원하지 않으면 "Use the who-is-adam skill to review /path/to/paper.pdf." 같은 자연어 트리거를 사용합니다. 스킬은 여전히 설치된 CLI에 의존하며 현재 구현의 오프라인/fake 제공자 제한을 따릅니다. fake LLM 출력은 결정적 계약 테스트 출력이고 외부 제공자 근거는 `unavailable`로 기록되며, 운영 품질의 ICML 리뷰라고 제시하면 안 됩니다. 이것은 커스텀 런타임 스킬이며 번들 또는 기본 GJC workflow가 아닙니다.
+
+
 ## 빠른 시작 CLI
 
 오프라인/fake 제공자 기반 CLI는 구현되어 있으며, 네트워크와 실제 API 키 없이 fake LLM으로 계약 검증용 리뷰 초안을 저장합니다. 외부 제공자 근거는 fixture로 대체하지 않고 `unavailable`로 기록합니다.

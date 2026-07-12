@@ -23,6 +23,51 @@ python -m pip install -e .
 
 OCR은 선택 사항입니다. `python -m pip install -e '.[ocr]'`로 extra를 켜고 Tesseract를 별도로 설치합니다(macOS는 `brew install tesseract`, Debian/Ubuntu Linux는 `sudo apt-get install tesseract-ocr`). `who-is-adam --help`와 `who-is-adam review --help`로 명령 표면을 확인합니다.
 
+
+## Agent Skill로 설치
+
+저장소는 커스텀 런타임 스킬 원본을 `skills/who-is-adam/`에 제공하며, 기대 진입점은 `skills/who-is-adam/SKILL.md`입니다. 이 디렉터리를 에이전트 런타임에 설치하고, 에이전트가 명령을 실행할 환경에 Python 패키지/CLI도 설치합니다. 이 스킬은 다섯 번째 기본 GJC workflow가 아니며 GJC에 기본 번들로 포함되지 않습니다.
+
+프로젝트 로컬 GJC 설치:
+
+```bash
+mkdir -p .gjc/skills
+cp -R skills/who-is-adam .gjc/skills/who-is-adam
+python -m pip install -e .
+```
+
+사용자 전역 GJC 설치:
+
+```bash
+mkdir -p ~/.gjc/skills
+cp -R skills/who-is-adam ~/.gjc/skills/who-is-adam
+python -m pip install -e .
+```
+
+프로젝트 로컬 Claude 스타일 커스텀 스킬 설치:
+
+```bash
+mkdir -p .claude/skills
+cp -R skills/who-is-adam .claude/skills/who-is-adam
+python -m pip install -e .
+```
+
+사용자 전역 Claude 스타일 커스텀 스킬 설치:
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
+python -m pip install -e .
+```
+
+슬래시 스킬을 지원하는 런타임의 호출 예:
+
+```text
+/skill:who-is-adam /path/to/paper.pdf
+```
+
+`/skill:who-is-adam`이나 다른 슬래시 스킬 문법을 지원하지 않는 호스트에서는 설치된 커스텀 스킬과 로컬 PDF 경로를 명시하는 `자연어 트리거` fallback을 사용합니다. 예시 프롬프트: "Use the who-is-adam skill to review /Users/kwon/papers/example-paper.pdf." `SKILL.md` 오케스트레이션 계층은 이 요청을 필수 런타임 확인값과 필요한 오프라인 설정을 포함한 지원 CLI 호출로 바꿔야 합니다. Python CLI는 PDF를 읽고, 게이트를 적용하고, fake/offline 리뷰 출력을 만들고, Markdown을 쓰는 실행 표면입니다. 오프라인 fake 제한은 그대로 적용됩니다. 결정적 fake LLM 출력과 `unavailable` 외부 근거는 계약 테스트용이며 운영 리뷰 품질이 아닙니다.
+
 ## 환경 설정
 
 현재 구현된 경로에서는 `WHO_IS_ADAM_OFFLINE=true`를 설정하거나 `--offline`을 전달합니다. 모든 CLI 리뷰 실행에서 `--llm-policy`와 `--code-of-conduct-ack`를 명시합니다. Hosted 제공자 환경 변수는 `ReviewConfig`가 파싱할 수 있지만, 이 체크포인트에서 hosted production review 생성을 활성화하지 않습니다.

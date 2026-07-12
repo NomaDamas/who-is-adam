@@ -57,6 +57,51 @@ who-is-adam --help
 who-is-adam review --help
 ```
 
+## Install as an Agent Skill
+
+The custom Agent Skill source lives in this repository at `skills/who-is-adam/`, with `skills/who-is-adam/SKILL.md` as the entry point. Install that skill directory in an agent runtime, and install the Python package/CLI separately. The `SKILL.md` file is the orchestration layer: it tells the agent how to collect arguments, enforce review policy, call the `who-is-adam` CLI, and interpret outputs. The Python package provides the actual `who-is-adam review` command. Copying only the skill without installing the Python package leaves the agent without the CLI it must run.
+
+Project-local GJC installation:
+
+```bash
+mkdir -p .gjc/skills
+cp -R skills/who-is-adam .gjc/skills/who-is-adam
+python -m pip install -e .
+```
+
+User-global GJC installation:
+
+```bash
+mkdir -p ~/.gjc/skills
+cp -R skills/who-is-adam ~/.gjc/skills/who-is-adam
+python -m pip install -e .
+```
+
+Project-local Claude-style custom skill installation:
+
+```bash
+mkdir -p .claude/skills
+cp -R skills/who-is-adam .claude/skills/who-is-adam
+python -m pip install -e .
+```
+
+User-global Claude-style custom skill installation:
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
+python -m pip install -e .
+```
+
+In runtimes that support slash-skill invocation, run:
+
+```text
+/skill:who-is-adam /path/to/paper.pdf
+```
+
+If slash commands are not supported, use a natural-language trigger such as: "Use the who-is-adam skill to review /path/to/paper.pdf." The skill still relies on the installed CLI and the current implementation's offline/fake-provider limitation: fake LLM output is deterministic contract-test output, external provider evidence is recorded as `unavailable`, and it must not be presented as a production-quality ICML review. This is a custom runtime skill, not a bundled or default GJC workflow.
+
+
 ## Quick start CLI
 
 The offline/fake-provider CLI path is implemented and can save contract-test review drafts without network access or real API keys.

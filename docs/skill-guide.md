@@ -23,6 +23,51 @@ python -m pip install -e .
 
 OCR is optional. Enable the extra with `python -m pip install -e '.[ocr]'` and install Tesseract separately (`brew install tesseract` on macOS, or `sudo apt-get install tesseract-ocr` on Debian/Ubuntu Linux). Verify the command surface with `who-is-adam --help` and `who-is-adam review --help`.
 
+
+## Install as an Agent Skill
+
+The repository ships the custom runtime skill source at `skills/who-is-adam/`; the expected entry point is `skills/who-is-adam/SKILL.md`. Install that directory into the agent runtime, and install the Python package/CLI in the environment where the agent will run commands. The skill is not a fifth default GJC workflow and is not bundled into GJC by default.
+
+Project-local GJC installation:
+
+```bash
+mkdir -p .gjc/skills
+cp -R skills/who-is-adam .gjc/skills/who-is-adam
+python -m pip install -e .
+```
+
+User-global GJC installation:
+
+```bash
+mkdir -p ~/.gjc/skills
+cp -R skills/who-is-adam ~/.gjc/skills/who-is-adam
+python -m pip install -e .
+```
+
+Project-local Claude-style custom skill installation:
+
+```bash
+mkdir -p .claude/skills
+cp -R skills/who-is-adam .claude/skills/who-is-adam
+python -m pip install -e .
+```
+
+User-global Claude-style custom skill installation:
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
+python -m pip install -e .
+```
+
+Invocation where slash skills are supported:
+
+```text
+/skill:who-is-adam /path/to/paper.pdf
+```
+
+For hosts that do not support `/skill:who-is-adam` or other slash-skill syntax, use a `natural-language trigger` fallback that names the installed custom skill and the local PDF path. Example prompt: "Use the who-is-adam skill to review /Users/kwon/papers/example-paper.pdf." The `SKILL.md` orchestration layer should translate that request into the supported CLI invocation, including required runtime acknowledgements and offline settings when applicable. The Python CLI remains the execution surface that reads PDFs, applies gates, generates fake/offline review output, and writes Markdown. The offline fake limitation still applies: deterministic fake LLM output and `unavailable` external evidence are for contract testing, not production review quality.
+
 ## Environment setup
 
 For the current implemented path, set `WHO_IS_ADAM_OFFLINE=true` or pass `--offline`. Keep `--llm-policy` and `--code-of-conduct-ack` explicit on every CLI review run. Hosted provider environment variables may be parsed by `ReviewConfig`, but they do not enable hosted production review generation in this checkpoint.
