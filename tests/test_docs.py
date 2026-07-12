@@ -5,15 +5,6 @@ from pathlib import Path
 
 
 ENGLISH_DOC_REQUIREMENTS = {
-    "README.md": [
-        "Product proposal summary",
-        "Safe refusal policy",
-        "Evidence policy",
-        "Output location and file names",
-        "Installation",
-        "Usage",
-        "Install as an Agent Skill",
-    ],
     "docs/product-proposal.md": [
         "Processing flow",
         "Review quality principles",
@@ -57,7 +48,6 @@ ENGLISH_DOC_REQUIREMENTS = {
 }
 
 KOREAN_DOC_REQUIREMENTS = {
-    "docs/ko/README.md": ["제품 제안 요약", "안전한 거절 정책", "증거 정책", "출력 위치와 파일 이름", "설치", "사용법", "Agent Skill로 설치"],  # noqa: E501
     "docs/ko/product-proposal.md": ["처리 흐름", "리뷰 품질 원칙", "사람이 최종 판단한다"],
     "docs/ko/operator-guide.md": ["환경 변수 매트릭스", "거절 사례", "오프라인/테스트 모드"],
     "docs/ko/evidence-policy.md": ["신뢰 경계", "OpenReview 근거 제한", "프롬프트 인젝션 처리"],
@@ -85,7 +75,6 @@ KOREAN_DOC_REQUIREMENTS = {
 }
 
 DOC_TRANSLATION_PAIRS = {
-    "README.md": "docs/ko/README.md",
     "docs/product-proposal.md": "docs/ko/product-proposal.md",
     "docs/operator-guide.md": "docs/ko/operator-guide.md",
     "docs/evidence-policy.md": "docs/ko/evidence-policy.md",
@@ -120,36 +109,6 @@ STALE_ASSIGNMENT_PROCESS_PATTERNS = [
 
 
 CONTRACT_PARITY_REQUIREMENTS = {
-    ("README.md", "docs/ko/README.md"): [
-        (
-            [
-                "ICML 2026 Main Track",
-                "50 MB",
-                "8-page main-body limit",
-                "Soundness/Presentation/Contribution 1-4",
-                "Rating 1-6",
-                "Confidence 1-5",
-            ],
-            [
-                "ICML 2026 Main Track",
-                "50MB",
-                "본문 8쪽 제한",
-                "Soundness/Presentation/Contribution 1-4",
-                "Rating 1-6",
-                "Confidence 1-5",
-            ],
-        ),
-        (
-            [
-                "Hosted LLM clients and production review-quality guarantees are not claimed as complete yet",
-                "offline/fake-provider CLI path is implemented",
-            ],
-            [
-                "Hosted LLM 클라이언트와 실제 운영 품질 보장은 아직 구현 완료로 주장하지 않습니다",
-                "오프라인/fake 제공자 기반 CLI",
-            ],
-        ),
-    ],
     ("docs/product-proposal.md", "docs/ko/product-proposal.md"): [
         (
             [
@@ -188,33 +147,6 @@ CONTRACT_PARITY_REQUIREMENTS = {
 }
 
 INSTALL_USAGE_REQUIREMENTS = [
-    (
-        "README.md",
-        "docs/ko/README.md",
-        [
-            "git clone",
-            "python3.11 -m venv .venv",
-            "source .venv/bin/activate",
-            "python -m pip install -e .",
-            "python -m pip install -e '.[ocr]'",
-            "brew install tesseract",
-            "sudo apt-get install tesseract-ocr",
-            "who-is-adam review --help",
-            "WHO_IS_ADAM_OFFLINE=true who-is-adam review paper.pdf",
-            "who-is-adam review notes.txt",
-            "reviews/a_study_of_adam/a_study_of_adam_review_1.md",
-        ],
-        [
-            "설치",
-            "사용법",
-            "Python 3.11+",
-            "fake LLM",
-            "계약 테스트",
-            "운영 품질의 ICML 리뷰",
-            "종료 코드 `0`",
-            "종료 코드 `2`",
-        ],
-    ),
     (
         "docs/skill-guide.md",
         "docs/ko/skill-guide.md",

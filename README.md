@@ -16,10 +16,12 @@ cd who-is-adam
 python -m pip install -e .
 ```
 
-Then make the bundled skill available to your agent by copying `skills/who-is-adam/` into your skill directory, for example:
+Then make the bundled skill available to your agent by copying `skills/who-is-adam/` into your skill directory. The skill definition lives at `skills/who-is-adam/SKILL.md`, and the default GJC workflow reads it from a configured skill directory.
 
 ```bash
+cp -R skills/who-is-adam .gjc/skills/
 cp -R skills/who-is-adam ~/.gjc/skills/
+cp -R skills/who-is-adam .claude/skills/
 cp -R skills/who-is-adam ~/.claude/skills/
 ```
 
@@ -44,9 +46,10 @@ The skill wrapper calls the local `who-is-adam review` CLI. The current supporte
 3. Safety gates reject unreadable PDFs, low-quality extraction, or prompt-injection attempts before review generation.
 4. ICML desk checks reject blocking format, anonymity, scope, or page-limit issues.
 5. Independent specialist reviewer lenses assess methodology, evidence, novelty, presentation, ethics, and reproducibility.
-6. A synthesis step merges the specialist outputs into the official review fields: summary, strengths/weaknesses, questions, limitations, scores, confidence, evidence, consensus, conflicts, and minority opinions.
-7. Citation and OpenReview lookups attach only public evidence when available; missing external evidence stays unavailable rather than being guessed.
-8. The Markdown review is saved under a versioned path such as `reviews/<paper-title>/<paper-title>_review_1.md`.
+6. An added deliberation step runs a devil's advocate critique, reviewer debate, and meta-reviewer pass over consistency, validity, evidence gaps, and score pressure. This does not replace the specialist reviews; it adds adversarial checks before final synthesis.
+7. A synthesis step merges the specialist outputs and deliberation constraints into the official review fields: summary, strengths/weaknesses, questions, limitations, scores, confidence, evidence, consensus, conflicts, and minority opinions.
+8. Citation and OpenReview lookups attach only public evidence when available; missing external evidence stays unavailable rather than being guessed.
+9. The Markdown review is saved under a versioned path such as `reviews/<paper-title>/<paper-title>_review_1.md`, with the deliberation report recorded in the metadata appendix.
 
 ## More Docs
 

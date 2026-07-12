@@ -13,6 +13,7 @@ from who_is_adam.output.markdown import render_review_markdown
 from who_is_adam.output.paths import persist_markdown_atomic
 from who_is_adam.pdf.extractor import PdfExtractionError, PdfExtractor
 from who_is_adam.pdf.ocr import NullOcrAdapter, TesseractOcrAdapter
+from who_is_adam.review.deliberation import run_review_deliberation
 from who_is_adam.review.specialists import run_specialist_reviews
 from who_is_adam.review.synthesis import synthesize_reviews
 from who_is_adam.safety.quality_gate import evaluate_pre_review_gates
@@ -85,7 +86,12 @@ def run_review(
 
     client = llm_client or _llm_client(config)
     specialist_reviews = run_specialist_reviews(paper=paper, llm_client=client)
-    synthesized = synthesize_reviews(specialist_reviews=specialist_reviews, llm_client=client)
+    deliberation = run_review_deliberation(specialist_reviews=specialist_reviews, llm_client=client)
+    synthesized = synthesize_reviews(
+        specialist_reviews=specialist_reviews,
+        llm_client=client,
+        deliberation=deliberation,
+    )
     prior_work = compare_prior_work_with_openreview(paper, config)
 
     markdown = render_review_markdown(
@@ -94,6 +100,7 @@ def run_review(
         appendices={
             "icml_track": "main",
             "desk_reject_checks": [check.model_dump(mode="json") for check in desk_checks],
+            "review_deliberation": deliberation.model_dump(mode="json"),
             "prior_work_comparisons": [item.model_dump(mode="json") for item in prior_work],
         },
     )

@@ -6,7 +6,7 @@ import json
 from collections.abc import Sequence
 
 from who_is_adam.llm.base import LlmClient
-from who_is_adam.models import SpecialistReview, SynthesizedReview
+from who_is_adam.models import ReviewDeliberation, SpecialistReview, SynthesizedReview
 from who_is_adam.review.prompts import synthesis_prompt
 from who_is_adam.review.specialists import SPECIALIST_ROLES
 
@@ -19,6 +19,7 @@ def synthesize_reviews(
     *,
     specialist_reviews: Sequence[SpecialistReview],
     llm_client: LlmClient,
+    deliberation: ReviewDeliberation | None = None,
 ) -> SynthesizedReview:
     """Validate and synthesize five independent specialist reviews."""
     _validate_specialist_set(specialist_reviews)
@@ -27,8 +28,13 @@ def synthesize_reviews(
         ensure_ascii=False,
         sort_keys=True,
     )
+    deliberation_json = (
+        json.dumps(deliberation.model_dump(mode="json"), ensure_ascii=False, sort_keys=True)
+        if deliberation is not None
+        else None
+    )
     payload = llm_client.complete_json(
-        synthesis_prompt(specialist_reviews_json=reviews_json),
+        synthesis_prompt(specialist_reviews_json=reviews_json, deliberation_json=deliberation_json),
         SynthesizedReview,
         safety_context={
             "evidence_trust": "untrusted",

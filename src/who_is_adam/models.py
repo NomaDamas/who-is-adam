@@ -209,6 +209,35 @@ class SpecialistReview(BaseModel):
     uncertainty: str | None = None
 
 
+class DevilAdvocateReview(BaseModel):
+    critical_objections: list[Finding] = Field(min_length=1)
+    overstated_strengths: list[str] = Field(default_factory=list)
+    understated_weaknesses: list[str] = Field(default_factory=list)
+    score_pressure: str = Field(min_length=1)
+
+
+class DebateRound(BaseModel):
+    topic: str = Field(min_length=1)
+    reviewer_positions: list[str] = Field(min_length=1)
+    devil_advocate_response: str = Field(min_length=1)
+    synthesis_implication: str = Field(min_length=1)
+
+
+class MetaReviewAssessment(BaseModel):
+    consistency_checks: list[str] = Field(min_length=1)
+    validity_checks: list[str] = Field(min_length=1)
+    evidence_gaps: list[str] = Field(default_factory=list)
+    recommended_score_adjustment: str = Field(min_length=1)
+
+
+class ReviewDeliberation(BaseModel):
+    devil_advocate: DevilAdvocateReview
+    debate_rounds: list[DebateRound] = Field(min_length=1)
+    meta_review: MetaReviewAssessment
+    dialectical_synthesis: list[str] = Field(min_length=1)
+    required_synthesis_constraints: list[str] = Field(min_length=1)
+
+
 class SynthesizedReview(BaseModel):
     summary: str = Field(min_length=1)
     strengths: list[str] = Field(min_length=1)

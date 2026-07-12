@@ -7,7 +7,17 @@ from typing import Any, Protocol, TypeVar
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from who_is_adam.models import EvidenceSpan, Finding, ReviewScores, SpecialistReview, SynthesizedReview
+from who_is_adam.models import (
+    DebateRound,
+    DevilAdvocateReview,
+    EvidenceSpan,
+    Finding,
+    MetaReviewAssessment,
+    ReviewDeliberation,
+    ReviewScores,
+    SpecialistReview,
+    SynthesizedReview,
+)
 
 JsonObject = dict[str, Any]
 SchemaType = type[BaseModel] | TypeAdapter[Any] | Mapping[str, Any]
@@ -76,9 +86,15 @@ def _dump_validated(value: Any) -> JsonObject:
 def _default_payload_for_schema(schema: SchemaType, *, role: str) -> JsonObject:
     if isinstance(schema, type) and issubclass(schema, SpecialistReview):
         return _default_specialist_review_payload(role)
+    if isinstance(schema, type) and issubclass(schema, ReviewDeliberation):
+        return _default_deliberation_payload()
     if isinstance(schema, type) and issubclass(schema, SynthesizedReview):
         return _default_review_payload()
-    for payload in (_default_specialist_review_payload(role), _default_review_payload()):
+    for payload in (
+        _default_specialist_review_payload(role),
+        _default_deliberation_payload(),
+        _default_review_payload(),
+    ):
         if _payload_validates(payload, schema):
             return payload
     return _default_review_payload()
@@ -114,6 +130,47 @@ def _default_specialist_review_payload(role: str) -> JsonObject:
         uncertainty="Offline fake specialist review is for contract testing only.",
     )
     return review.model_dump(mode="json")
+
+
+def _default_deliberation_payload() -> JsonObject:
+    evidence = EvidenceSpan(page=1, section="Abstract", text="Deterministic offline evidence.")
+    objection = Finding(
+        claim="Devil's advocate questions whether the stated motivation is sufficient evidence.",
+        evidence=[evidence],
+    )
+    report = ReviewDeliberation(
+        devil_advocate=DevilAdvocateReview(
+            critical_objections=[objection],
+            overstated_strengths=["Motivation may be overstated without empirical support."],
+            understated_weaknesses=["Ablation gaps should remain visible in synthesis."],
+            score_pressure="Do not raise scores without evidence-backed resolution.",
+        ),
+        debate_rounds=[
+            DebateRound(
+                topic="Evidence sufficiency",
+                reviewer_positions=["Specialists cite motivation and limited empirical support."],
+                devil_advocate_response="The positive case needs stronger empirical grounding.",
+                synthesis_implication="Preserve both the motivation strength and empirical weakness.",
+            )
+        ],
+        meta_review=MetaReviewAssessment(
+            consistency_checks=["Strengths and weaknesses must cite the same evidence boundary."],
+            validity_checks=["Claims unsupported by specialist evidence must not affect scores."],
+            evidence_gaps=["Offline fake deliberation cannot inspect real paper evidence."],
+            recommended_score_adjustment="Keep deterministic offline scores unchanged.",
+        ),
+        dialectical_synthesis=[
+            "Thesis: the paper states a clear motivation.",
+            "Antithesis: empirical support remains limited.",
+            "Synthesis: final review should preserve both claims with evidence limits.",
+        ],
+        required_synthesis_constraints=[
+            "Do not hide unresolved empirical objections.",
+            "Do not invent evidence beyond specialist findings.",
+        ],
+    )
+    return report.model_dump(mode="json")
+
 
 def _default_review_payload() -> JsonObject:
     evidence = EvidenceSpan(page=1, section="Abstract", text="Deterministic offline evidence.")
