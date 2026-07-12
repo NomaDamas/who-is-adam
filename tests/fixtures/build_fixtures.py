@@ -8,6 +8,12 @@ from reportlab.pdfgen import canvas
 
 FIXTURE_SEED = 20260712
 PDF_DIR = Path(__file__).resolve().parent / "pdfs"
+PDF_METADATA = {
+    "author": "who-is-adam deterministic fixtures",
+    "creator": "tests.fixtures.build_fixtures",
+    "subject": "deterministic ICML review tests",
+}
+
 
 COMMON_PARAGRAPH = (
     "We evaluate a deterministic representation learning method for robust tabular prediction. "
@@ -116,11 +122,11 @@ def _long_text(prefix: str, repeats: int) -> str:
 
 
 def _write_pdf(path: Path, pages: list[list[str]]) -> None:
-    document = canvas.Canvas(str(path), pagesize=letter, pageCompression=0)
+    document = canvas.Canvas(str(path), pagesize=letter, pageCompression=0, invariant=1)
     document.setTitle(path.stem)
-    document.setAuthor("who-is-adam deterministic fixtures")
-    document.setCreator("tests.fixtures.build_fixtures")
-    document.setSubject("deterministic ICML review tests")
+    document.setAuthor(PDF_METADATA["author"])
+    document.setCreator(PDF_METADATA["creator"])
+    document.setSubject(PDF_METADATA["subject"])
     for page in pages:
         text = document.beginText(72, 740)
         text.setFont("Helvetica", 10)

@@ -37,7 +37,7 @@ endobj
 endobj
 6 0 obj
 <<
-/Author (who-is-adam deterministic fixtures) /CreationDate (D:20260712134653+09'00') /Creator (tests.fixtures.build_fixtures) /Keywords () /ModDate (D:20260712134653+09'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+/Author (who-is-adam deterministic fixtures) /CreationDate (D:20000101000000+00'00') /Creator (tests.fixtures.build_fixtures) /Keywords () /ModDate (D:20000101000000+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
   /Subject (deterministic ICML review tests) /Title (prompt_injection) /Trapped /False
 >>
 endobj
@@ -81,7 +81,7 @@ xref
 trailer
 <<
 /ID 
-[<ce8251048bbb0e47b692c397f040043a><ce8251048bbb0e47b692c397f040043a>]
+[<36bc8c6075c518e355f9a5130d954ac4><36bc8c6075c518e355f9a5130d954ac4>]
 % ReportLab generated PDF document -- digest (opensource)
 
 /Info 6 0 R
