@@ -10,7 +10,12 @@ import httpx
 from rapidfuzz import fuzz
 
 from who_is_adam.config import ReviewConfig
-from who_is_adam.models import ProviderEvidence, ProviderStatus, ReferenceEntry
+from who_is_adam.models import (
+    OpenReviewReviewAssessment,
+    ProviderEvidence,
+    ProviderStatus,
+    ReferenceEntry,
+)
 
 from .citations import ProviderResult, make_provider_http_client
 
@@ -47,6 +52,21 @@ class OpenReviewClient:
         status = ProviderStatus.VERIFIED if score >= 92 else ProviderStatus.WEAK_MATCH
         diagnostic = None if status is ProviderStatus.VERIFIED else "public OpenReview title weakly matched"
         return ProviderResult("openreview", status, diagnostic, url, metadata).evidence()
+
+    def public_review_assessment_for_evidence(
+        self,
+        evidence: ProviderEvidence,
+    ) -> OpenReviewReviewAssessment | None:
+        forum = evidence.metadata.get("forum") or evidence.metadata.get("id")
+        if not isinstance(forum, str) or not forum:
+            return None
+        data, error = self.http.get_json("notes", params={"forum": forum, "limit": 50})
+        if error:
+            return None
+        notes = (data or {}).get("notes")
+        if not isinstance(notes, list) or not notes:
+            return None
+        return _review_assessment_from_notes(notes)
 
     @staticmethod
     def _best_note(title: str, notes: list[object]) -> tuple[dict[str, object], float] | None:
@@ -87,6 +107,60 @@ def public_openreview_evidence(
     reference: ReferenceEntry, config: ReviewConfig, *, client: httpx.Client | None = None
 ) -> ProviderEvidence:
     return OpenReviewClient(config, client=client).public_evidence_for_reference(reference)
+
+
+def _review_assessment_from_notes(notes: list[object]) -> OpenReviewReviewAssessment | None:
+    strengths: list[str] = []
+    weaknesses: list[str] = []
+    review_count = 0
+    for note in notes:
+        if not isinstance(note, dict) or not _is_public_review_note(note):
+            continue
+        review_count += 1
+        strengths.extend(_content_texts(note, ("strengths", "strength", "summary_of_strengths")))
+        weaknesses.extend(_content_texts(note, ("weaknesses", "weakness", "summary_of_weaknesses")))
+    if review_count == 0:
+        return None
+    return OpenReviewReviewAssessment(
+        strengths=_dedupe_nonempty(strengths),
+        weaknesses=_dedupe_nonempty(weaknesses),
+        review_count=review_count,
+    )
+
+
+def _is_public_review_note(note: object) -> bool:
+    if not isinstance(note, dict):
+        return False
+    content = note.get("content")
+    if not isinstance(content, dict):
+        return False
+    invitation = note.get("invitation")
+    has_review_invitation = isinstance(invitation, str) and "review" in invitation.casefold()
+    has_review_fields = any(key in content for key in ("strengths", "weaknesses", "strength", "weakness"))
+    return has_review_invitation or has_review_fields
+
+
+def _content_texts(note: dict[str, object], keys: tuple[str, ...]) -> list[str]:
+    values: list[str] = []
+    for key in keys:
+        value = _content_value(note, key)
+        if isinstance(value, str):
+            values.append(value)
+        elif isinstance(value, list):
+            values.extend(item for item in value if isinstance(item, str))
+    return values
+
+
+def _dedupe_nonempty(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for value in values:
+        cleaned = " ".join(value.split())
+        folded = cleaned.casefold()
+        if cleaned and folded not in seen:
+            seen.add(folded)
+            deduped.append(cleaned)
+    return deduped
 
 
 def _content_value(note: dict[str, object], key: str) -> object:

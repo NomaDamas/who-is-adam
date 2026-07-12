@@ -46,6 +46,7 @@ def compare_prior_work_with_openreview(
     for claim_span in select_direct_comparison_claims(structure):
         reference = _best_reference_for_claim(claim_span.text, references) or references[0]
         evidence = client.public_evidence_for_reference(reference)
+        review_assessment = client.public_review_assessment_for_evidence(evidence)
         comparison = _comparison_from_status(evidence.status)
         results.append(
             PriorWorkEvidence(
@@ -53,6 +54,7 @@ def compare_prior_work_with_openreview(
                 claim_type="direct_comparison",
                 paper_claim_span=claim_span,
                 openreview_evidence=evidence,
+                openreview_review_assessment=review_assessment,
                 comparison=comparison,
             )
         )

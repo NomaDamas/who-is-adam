@@ -166,11 +166,18 @@ class CitationCheck(BaseModel):
     status: CitationStatus
 
 
+class OpenReviewReviewAssessment(BaseModel):
+    strengths: list[str] = Field(default_factory=list)
+    weaknesses: list[str] = Field(default_factory=list)
+    review_count: NonNegativeInt = 0
+
+
 class PriorWorkEvidence(BaseModel):
     reference: ReferenceEntry
     claim_type: str = Field(min_length=1)
     paper_claim_span: EvidenceSpan
     openreview_evidence: ProviderEvidence | None = None
+    openreview_review_assessment: OpenReviewReviewAssessment | None = None
     comparison: PriorWorkComparison
 
     @model_validator(mode="after")
