@@ -135,7 +135,7 @@ who-is-adam review paper.pdf --output-dir reviews --llm-policy "<배정된 ICML 
 - `SynthesizedReview`는 최소 하나의 근거 span과 별도의 consensus/conflict/minority-opinion 필드를 요구한다.
 - `ProviderEvidence`, `CitationCheck`, `PriorWorkEvidence`는 외부 제공자 상태와 논문 내부 근거를 구분한다.
 
-Crossref, Semantic Scholar, arXiv, 공개 OpenReview 근거는 출처가 있는 메타데이터로만 사용한다. 누락, rate limit, 비공개, 충돌하는 제공자 결과는 unavailable 또는 uncertain으로 남겨야 하며, 부재를 조작된 주장으로 바꾸지 않는다.
+Crossref, Semantic Scholar, OpenAlex, arXiv, 공개 OpenReview 근거는 출처가 있는 메타데이터로만 사용한다. 누락 또는 rate limit은 `unavailable`, 필드나 제공자 충돌은 `needs_review`로 남기며 부재를 조작된 주장으로 바꾸지 않는다.
 
 ## ICML 공식 출력 필드와 척도
 
@@ -151,7 +151,7 @@ Crossref, Semantic Scholar, arXiv, 공개 OpenReview 근거는 출처가 있는 
 
 ## 구성과 오프라인 모드
 
-`ReviewConfig.from_env`는 `WHO_IS_ADAM_OFFLINE`, LLM 제공자/모델/API/base URL 설정, OpenReview, Semantic Scholar, Crossref, arXiv의 제공자 base URL/API 키, `WHO_IS_ADAM_CROSSREF_MAILTO`, OCR 설정, 고정 타임스탬프, 랜덤 시드를 읽는다. `provider_mode`는 `offline`이 true이거나 LLM 제공자가 `fake`이면 offline이다.
+`ReviewConfig.from_env`는 `WHO_IS_ADAM_OFFLINE`, LLM 제공자/모델/API/base URL 설정, OpenReview, Semantic Scholar, Crossref, OpenAlex, arXiv의 제공자 base URL/API 키, `WHO_IS_ADAM_CROSSREF_MAILTO`, OCR 설정, 고정 타임스탬프, 랜덤 시드를 읽는다. `provider_mode`는 외부 제공자 접근 상태를 나타내며 `offline`이 true일 때만 offline이다. fake LLM만 선택한 경우에는 인용 제공자 네트워크 접근을 비활성화하지 않는다.
 
 오프라인 모드는 `LlmProvider.FAKE`를 강제하고 결정적 가짜 LLM 동작을 사용하며, 현재 체크포인트에서 문서화된 운영 경로다. 호스팅 제공자 값은 스키마 검증을 받지만 프로덕션 호스팅 리뷰 생성은 아직 구현되어 있지 않다.
 

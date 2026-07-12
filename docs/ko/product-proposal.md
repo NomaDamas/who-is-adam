@@ -34,7 +34,7 @@ ICML 2026 Main Track 리뷰는 논문 내용 평가뿐 아니라 제출 형식, 
 2. **구조 추출**: 추출기가 제목, 초록, 섹션, 페이지, 표, 그림, 수식, 참고문헌, 텍스트 span, 추출 품질 지표를 수집합니다.
 3. **품질/인젝션 게이트**: 리뷰 전 게이트가 낮은 텍스트 밀도, OCR 품질이 낮은 입력, 손상/암호화 PDF, 프롬프트 인젝션 의심 패턴을 리뷰 생성 전에 거절합니다.
 4. **ICML 규정 검사**: desk check가 단일 PDF 가정, 50MB 크기 제한, 메인 본문 8쪽 제한, 익명성 신호, LaTeX 형식 관련 휴리스틱을 평가합니다.
-5. **인용 검증**: Crossref, Semantic Scholar, arXiv가 참고문헌의 제목/연도/DOI/arXiv ID/venue 매칭을 보조합니다.
+5. **인용 검증**: Crossref, Semantic Scholar, OpenAlex, arXiv가 최대 5개 후보의 제목, 저자, 연도, venue, 출판 세부정보, DOI, arXiv ID를 비교하며 충돌은 `needs_review`로 남깁니다.
 6. **선행연구/OpenReview 근거**: prior-work selector는 직접 비교, 개선, 우월성 주장과 공개 OpenReview 근거가 있을 때만 그 근거를 사용하며, 근거가 없으면 unavailable로 남깁니다.
 7. **독립 전문 리뷰**: 여러 전문 관점이 서로의 출력을 보지 않고 PDF 근거와 진단만 사용해 평가합니다.
 8. **종합**: synthesizer가 합의점, 충돌, 소수 의견, 불확실성을 보존하면서 구현된 공식 필드와 점수 범위로 리뷰를 생성합니다.

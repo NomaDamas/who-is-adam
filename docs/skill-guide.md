@@ -135,7 +135,7 @@ The evidence contract is encoded in `who_is_adam.models`:
 - `SynthesizedReview` requires at least one evidence span and separate consensus/conflict/minority-opinion fields.
 - `ProviderEvidence`, `CitationCheck`, and `PriorWorkEvidence` distinguish external provider status from paper-internal evidence.
 
-Use Crossref, Semantic Scholar, arXiv, and public OpenReview evidence as provenance-bearing metadata only. Missing, rate-limited, private, or conflicting provider results must remain unavailable or uncertain; do not turn absence into a fabricated claim.
+Use Crossref, Semantic Scholar, OpenAlex, arXiv, and public OpenReview evidence as provenance-bearing metadata only. Missing or rate-limited evidence remains `unavailable`; field or provider conflicts remain `needs_review`. Do not turn absence into a fabricated claim.
 
 ## ICML official output fields and scales
 
@@ -151,7 +151,7 @@ The score scales are enforced by `ReviewScores` and `SynthesizedReview` in `who_
 
 ## Configuration and offline mode
 
-`ReviewConfig.from_env` reads `WHO_IS_ADAM_OFFLINE`, LLM provider/model/API/base URL settings, provider base URLs/API keys for OpenReview, Semantic Scholar, Crossref, and arXiv, `WHO_IS_ADAM_CROSSREF_MAILTO`, OCR settings, fixed timestamp, and random seed. `provider_mode` is offline whenever `offline` is true or the LLM provider is `fake`.
+`ReviewConfig.from_env` reads `WHO_IS_ADAM_OFFLINE`, LLM provider/model/API/base URL settings, provider base URLs/API keys for OpenReview, Semantic Scholar, Crossref, OpenAlex, and arXiv, `WHO_IS_ADAM_CROSSREF_MAILTO`, OCR settings, fixed timestamp, and random seed. `provider_mode` describes external-provider access and is offline only when `offline` is true; selecting the fake LLM alone does not disable citation-provider network access.
 
 Offline mode forces `LlmProvider.FAKE`, uses deterministic fake LLM behavior, and is the documented operational path in the current checkpoint. Hosted provider values are schema-validated, but production hosted review generation is not implemented yet.
 

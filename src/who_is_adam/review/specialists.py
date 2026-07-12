@@ -5,11 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from who_is_adam.llm.base import LlmClient
-from who_is_adam.models import PaperStructure, SpecialistReview
+from who_is_adam.models import CitationCheck, PaperStructure, SpecialistReview
 from who_is_adam.review.prompts import specialist_prompt
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class SpecialistRole:
     """A single independent review perspective."""
 
@@ -49,6 +49,7 @@ def run_specialist_reviews(
     *,
     paper: PaperStructure,
     llm_client: LlmClient,
+    citation_checks: tuple[CitationCheck, ...] = (),
     roles: tuple[SpecialistRole, ...] = SPECIALIST_ROLES,
 ) -> tuple[SpecialistReview, ...]:
     """Run five independent specialist reviews without sharing peer outputs."""
@@ -59,7 +60,12 @@ def run_specialist_reviews(
 
     reviews: list[SpecialistReview] = []
     for role in roles:
-        prompt = specialist_prompt(role=role.name, remit=role.remit, paper=paper)
+        prompt = specialist_prompt(
+            role=role.name,
+            remit=role.remit,
+            paper=paper,
+            citation_checks=citation_checks,
+        )
         payload = llm_client.complete_json(
             prompt,
             SpecialistReview,

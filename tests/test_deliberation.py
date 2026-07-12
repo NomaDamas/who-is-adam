@@ -6,6 +6,7 @@ from who_is_adam.cli import app
 from who_is_adam.llm.base import FakeLlmClient
 from who_is_adam.models import EvidenceSpan, Finding, ReviewScores, SpecialistReview
 from who_is_adam.review.deliberation import run_review_deliberation
+from who_is_adam.review.prompts import deliberation_prompt, synthesis_prompt
 
 
 runner = CliRunner()
@@ -77,3 +78,23 @@ def test_cli_output_records_deliberation_appendix(tmp_path, pdf_fixtures) -> Non
     assert '"devil_advocate"' in markdown
     assert '"meta_review"' in markdown
     assert "Deterministic offline summary." in markdown
+
+
+def test_deliberation_prompt_has_total_byte_limit() -> None:
+    prompt = deliberation_prompt(specialist_reviews_json='{"finding":"' + "x" * 2_000_000 + '"}')
+
+    assert len(prompt.encode("utf-8")) <= 96_000
+    assert "[truncated to prompt budget]" in prompt
+    assert prompt.count("</untrusted_specialist_reviews>") == 1
+
+
+def test_synthesis_prompt_has_total_byte_limit() -> None:
+    prompt = synthesis_prompt(
+        specialist_reviews_json='{"finding":"' + "x" * 2_000_000 + '"}',
+        deliberation_json='{"debate":"' + "y" * 2_000_000 + '"}',
+    )
+
+    assert len(prompt.encode("utf-8")) <= 96_000
+    assert prompt.count("[truncated to prompt budget]") == 2
+    assert prompt.count("</untrusted_specialist_reviews>") == 1
+    assert prompt.count("</untrusted_review_deliberation>") == 1

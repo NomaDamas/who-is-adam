@@ -23,6 +23,7 @@ class CheckStatus(StrEnum):
 
 class CitationStatus(StrEnum):
     VERIFIED = "verified"
+    NEEDS_REVIEW = "needs_review"
     WEAK_MATCH = "weak_match"
     NOT_FOUND = "not_found"
     METADATA_ERROR = "metadata_error"
@@ -43,6 +44,7 @@ class ReviewRunStatus(StrEnum):
 
 class ProviderStatus(StrEnum):
     VERIFIED = "verified"
+    NEEDS_REVIEW = "needs_review"
     WEAK_MATCH = "weak_match"
     NOT_FOUND = "not_found"
     METADATA_ERROR = "metadata_error"
@@ -61,7 +63,11 @@ class EvidenceSpan(BaseModel):
 
     @model_validator(mode="after")
     def validate_offsets(self) -> "EvidenceSpan":
-        if self.char_start is not None and self.char_end is not None and self.char_end < self.char_start:
+        if (
+            self.char_start is not None
+            and self.char_end is not None
+            and self.char_end < self.char_start
+        ):
             raise ValueError("char_end must be greater than or equal to char_start")
         return self
 
@@ -91,6 +97,10 @@ class ReferenceEntry(BaseModel):
     authors: list[str] = Field(default_factory=list)
     year: int | None = Field(default=None, ge=1800, le=2100)
     venue: str | None = None
+    volume: str | None = None
+    issue: str | None = None
+    pages: str | None = None
+    publisher: str | None = None
     doi: str | None = None
     arxiv_id: str | None = None
     span: EvidenceSpan | None = None
@@ -162,7 +172,9 @@ class CitationCheck(BaseModel):
     reference: ReferenceEntry
     crossref: ProviderEvidence | None = None
     semantic_scholar: ProviderEvidence | None = None
+    openalex: ProviderEvidence | None = None
     arxiv: ProviderEvidence | None = None
+    duplicate_of: int | None = Field(default=None, ge=1)
     status: CitationStatus
 
 
@@ -182,7 +194,10 @@ class PriorWorkEvidence(BaseModel):
 
     @model_validator(mode="after")
     def unavailable_without_openreview_evidence(self) -> "PriorWorkEvidence":
-        if self.openreview_evidence is None and self.comparison is not PriorWorkComparison.UNAVAILABLE:
+        if (
+            self.openreview_evidence is None
+            and self.comparison is not PriorWorkComparison.UNAVAILABLE
+        ):
             raise ValueError("prior-work comparison requires public OpenReview evidence")
         return self
 

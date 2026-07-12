@@ -34,7 +34,7 @@ The intended and partially implemented flow is:
 2. **Structure extraction**: The extractor collects title, abstract, sections, pages, tables, figures, formulas, references, text spans, and extraction-quality metrics.
 3. **Quality/injection gates**: The pre-review gates reject low text density, OCR-poor inputs, damaged or encrypted PDFs, and suspected prompt-injection patterns before review generation.
 4. **ICML rule checks**: Desk checks evaluate single-PDF assumptions, 50 MB size limit, 8-page main-body limit, anonymity signals, and LaTeX-format-related heuristics.
-5. **Citation verification**: Crossref, Semantic Scholar, and arXiv support title/year/DOI/arXiv ID/venue matching for references.
+5. **Citation verification**: Crossref, Semantic Scholar, OpenAlex, and arXiv compare up to five candidates across title, authors, year, venue, publication details, DOI, and arXiv ID; conflicts remain `needs_review`.
 6. **Prior-work/OpenReview evidence**: The prior-work selector uses direct comparison, improvement, or superiority claims and uses public OpenReview evidence only when it exists; missing evidence remains unavailable.
 7. **Independent specialist reviews**: Multiple specialist perspectives evaluate the paper using PDF evidence and diagnostics without seeing each other's outputs.
 8. **Synthesis**: The synthesizer preserves consensus, conflicts, minority opinions, and uncertainty while producing the implemented official fields and score ranges.

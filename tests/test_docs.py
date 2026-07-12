@@ -98,6 +98,18 @@ DOCS_WITH_OFFLINE_PROVIDER_SEMANTICS = [
     "docs/ko/skill-guide.md",
 ]
 
+CITATION_PROVIDER_DOCS = [
+    "docs/product-proposal.md",
+    "docs/operator-guide.md",
+    "docs/evidence-policy.md",
+    "docs/skill-guide.md",
+    "docs/ko/README.md",
+    "docs/ko/product-proposal.md",
+    "docs/ko/operator-guide.md",
+    "docs/ko/evidence-policy.md",
+    "docs/ko/skill-guide.md",
+]
+
 STALE_FIXTURE_BACKED_OFFLINE_PATTERNS = [
     re.compile(r"supports deterministic offline runs with a fake LLM and fixture-backed providers", re.IGNORECASE),
     re.compile(r"--offline`:[^\n]*fake LLM[^\n]*fixture 기반 제공자"),
@@ -304,6 +316,15 @@ def test_root_readme_does_not_depend_on_korean_required_phrases() -> None:
     leaked_phrases = [phrase for phrase in KOREAN_PHRASES if phrase in readme_text]
 
     assert not leaked_phrases, f"README.md should use English headings, found {leaked_phrases}"
+
+
+def test_citation_provider_docs_include_openalex_and_needs_review() -> None:
+    root = Path(__file__).resolve().parents[1]
+
+    for relative_path in CITATION_PROVIDER_DOCS:
+        text = _read(root, relative_path)
+        assert "OpenAlex" in text, f"{relative_path} must document OpenAlex citation evidence"
+        assert "needs_review" in text, f"{relative_path} must document needs_review status"
 
 def test_installation_and_usage_guidance_stays_durable_and_translated() -> None:
     root = Path(__file__).resolve().parents[1]

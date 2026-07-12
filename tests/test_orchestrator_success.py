@@ -8,8 +8,21 @@ from who_is_adam.config import ReviewConfig
 from who_is_adam.llm.base import FakeLlmClient
 from who_is_adam.pdf.ocr import NullOcrAdapter
 from who_is_adam.review import orchestrator
-from who_is_adam.models import RuntimeMetadata, SpecialistReview, SynthesizedReview
-from who_is_adam.output.markdown import OFFICIAL_SECTION_ORDER, SCORE_SCALE_TEXT, render_review_markdown
+from who_is_adam.models import (
+    CitationCheck,
+    CitationStatus,
+    ProviderEvidence,
+    ProviderStatus,
+    ReferenceEntry,
+    RuntimeMetadata,
+    SpecialistReview,
+    SynthesizedReview,
+)
+from who_is_adam.output.markdown import (
+    OFFICIAL_SECTION_ORDER,
+    SCORE_SCALE_TEXT,
+    render_review_markdown,
+)
 from who_is_adam.output.paths import persist_markdown_atomic
 
 
@@ -35,7 +48,10 @@ def test_fake_review_renders_exact_official_headings_and_scales(tmp_path) -> Non
     markdown = render_review_markdown(review, metadata=metadata)
     output_path = persist_markdown_atomic(markdown, tmp_path, "Deterministic Offline Paper")
 
-    assert output_path == tmp_path / "deterministic-offline-paper" / "deterministic-offline-paper_review_1.md"
+    assert (
+        output_path
+        == tmp_path / "deterministic-offline-paper" / "deterministic-offline-paper_review_1.md"
+    )
     assert output_path.read_text(encoding="utf-8") == markdown
     assert _official_headings(markdown) == [*OFFICIAL_SECTION_ORDER, "Appendix: Metadata"]
     for title, scale in SCORE_SCALE_TEXT.items():
@@ -45,12 +61,113 @@ def test_fake_review_renders_exact_official_headings_and_scales(tmp_path) -> Non
     assert "ICML 2026 Main Track LLM policy" in markdown
 
 
+def test_review_evidence_summarizes_citation_mismatches() -> None:
+    payload = FakeLlmClient().complete_json("role: synthesis", SynthesizedReview)
+    review = SynthesizedReview.model_validate(payload)
+    reference = ReferenceEntry(
+        raw="Smith. Correct Paper. Journal, 2024",
+        title="Correct Paper",
+        year=2024,
+        pages="1-10",
+    )
+    check = CitationCheck(
+        reference=reference,
+        crossref=ProviderEvidence(
+            provider="crossref",
+            status=ProviderStatus.NEEDS_REVIEW,
+            diagnostic="conflicting citation fields: pages",
+            url="https://doi.org/10.1234/example",
+            metadata={"matched_title": "Correct Paper", "mismatch_fields": "pages"},
+        ),
+        status=CitationStatus.NEEDS_REVIEW,
+    )
+
+    markdown = render_review_markdown(review, citation_checks=[check])
+
+    assert "Citation verification: verified=0, weak_match=0, needs_review=1" in markdown
+    assert "Citation [1] Correct Paper: needs_review" in markdown
+    assert "crossref=needs_review; mismatch=pages; matched_title=Correct Paper" in markdown
+    assert "https://doi.org/10.1234/example" in markdown
+
+
+def test_citation_evidence_escapes_untrusted_markdown_and_urls() -> None:
+    payload = FakeLlmClient().complete_json("role: synthesis", SynthesizedReview)
+    review = SynthesizedReview.model_validate(payload)
+    check = CitationCheck(
+        reference=ReferenceEntry(
+            raw='<img src=x onerror="alert(1)">',
+            title='<img src=x onerror="alert(1)">',
+        ),
+        crossref=ProviderEvidence(
+            provider="crossref",
+            status=ProviderStatus.NEEDS_REVIEW,
+            url="javascript:alert(3)",
+            metadata={"matched_title": "[click](javascript:alert(2))"},
+        ),
+        status=CitationStatus.NEEDS_REVIEW,
+    )
+
+    markdown = render_review_markdown(review, citation_checks=[check])
+
+    assert "<img" not in markdown
+    assert "javascript:" not in markdown
+    assert r"&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt;" in markdown
+
+
+def test_citation_evidence_shows_both_sides_of_provider_conflict() -> None:
+    payload = FakeLlmClient().complete_json("role: synthesis", SynthesizedReview)
+    review = SynthesizedReview.model_validate(payload)
+    reference = ReferenceEntry(raw="Correct Paper. 2024", title="Correct Paper", year=2024)
+    check = CitationCheck(
+        reference=reference,
+        crossref=ProviderEvidence(
+            provider="crossref",
+            status=ProviderStatus.VERIFIED,
+            metadata={
+                "matched_title": "Correct Paper",
+                "matched_volume": "12",
+                "matched_issue": "3",
+                "matched_publisher": "Example Press",
+                "matched_doi": "10.1234/correct",
+            },
+        ),
+        semantic_scholar=ProviderEvidence(
+            provider="semantic_scholar",
+            status=ProviderStatus.VERIFIED,
+            metadata={
+                "matched_title": "Correct Paper",
+                "matched_volume": "99",
+                "matched_issue": "8",
+                "matched_publisher": "Wrong Press",
+                "matched_doi": "10.9999/wrong",
+            },
+        ),
+        status=CitationStatus.NEEDS_REVIEW,
+    )
+
+    markdown = render_review_markdown(review, citation_checks=[check])
+
+    assert "crossref=verified" in markdown
+    assert "matched_doi=10.1234/correct" in markdown
+    assert "matched_volume=12" in markdown
+    assert "matched_issue=3" in markdown
+    assert "matched_publisher=Example Press" in markdown
+    assert "semantic_scholar=verified" in markdown
+    assert "matched_doi=10.9999/wrong" in markdown
+    assert "matched_volume=99" in markdown
+    assert "matched_issue=8" in markdown
+    assert "matched_publisher=Wrong Press" in markdown
+
+
 def test_fake_llm_returns_schema_appropriate_specialist_review() -> None:
     payload = FakeLlmClient().complete_json("role: methodology", SpecialistReview)
     review = SpecialistReview.model_validate(payload)
 
     assert review.role == "methodology"
-    assert review.findings[0].claim == "Deterministic specialist finding cites extracted paper evidence."
+    assert (
+        review.findings[0].claim
+        == "Deterministic specialist finding cites extracted paper evidence."
+    )
     assert review.findings[0].evidence[0].text == "Deterministic offline evidence."
     assert review.scores.soundness == 3
     assert review.scores.overall_recommendation == 4
@@ -93,9 +210,16 @@ def test_offline_cli_runs_specialists_and_saves_review(tmp_path, pdf_fixtures) -
     markdown = output_path.read_text(encoding="utf-8")
     assert "Deterministic offline summary." in markdown
     assert "ICML 2026 Main Track LLM policy" in markdown
+    assert '"citation_checks"' in markdown
+    assert '"title": "Deterministic evaluation"' in markdown
+    assert '"status": "unavailable"' in markdown
+    assert "Citation verification: verified=0, weak_match=0, needs_review=0" in markdown
+    assert "unavailable=2" in markdown
 
 
-def test_offline_cli_refuses_prompt_injection_without_internal_error(tmp_path, pdf_fixtures) -> None:
+def test_offline_cli_refuses_prompt_injection_without_internal_error(
+    tmp_path, pdf_fixtures
+) -> None:
     result = runner.invoke(
         app,
         [
@@ -142,10 +266,43 @@ def test_hosted_provider_capability_error_exits_config_not_internal(tmp_path, pd
     assert "Internal error:" not in result.stderr
 
 
+def test_hosted_capability_failure_happens_before_citation_network(
+    tmp_path, pdf_fixtures, monkeypatch
+) -> None:
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("citation network must not run before LLM capability validation")
+
+    monkeypatch.setattr(orchestrator, "verify_paper_citations", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        [
+            "review",
+            str(pdf_fixtures / "valid_icml_text.pdf"),
+            "--output-dir",
+            str(tmp_path),
+            "--llm-policy",
+            "ICML 2026 Main Track LLM policy",
+            "--code-of-conduct-ack",
+        ],
+        env={
+            "WHO_IS_ADAM_LLM_PROVIDER": "openai",
+            "WHO_IS_ADAM_LLM_MODEL": "test-model",
+            "WHO_IS_ADAM_LLM_API_KEY": "test-key",
+            "WHO_IS_ADAM_OFFLINE": "0",
+        },
+    )
+
+    assert result.exit_code == 3
+    assert "hosted LLM clients are not wired" in result.stderr
+
+
 def test_pdf_extractor_uses_null_ocr_adapter_when_ocr_disabled(monkeypatch) -> None:
     captured: dict[str, object] = {}
 
-    def capture_init(self: object, *, ocr_adapter: object | None = None, low_text_chars: int = 200) -> None:
+    def capture_init(
+        self: object, *, ocr_adapter: object | None = None, low_text_chars: int = 200
+    ) -> None:
         captured["ocr_adapter"] = ocr_adapter
         captured["low_text_chars"] = low_text_chars
 
@@ -164,7 +321,9 @@ def test_pdf_extractor_wires_tesseract_adapter_when_ocr_enabled(monkeypatch) -> 
         def __init__(self, *, tesseract_cmd: str | None = None) -> None:
             captured["tesseract_cmd"] = tesseract_cmd
 
-    def capture_init(self: object, *, ocr_adapter: object | None = None, low_text_chars: int = 200) -> None:
+    def capture_init(
+        self: object, *, ocr_adapter: object | None = None, low_text_chars: int = 200
+    ) -> None:
         captured["ocr_adapter"] = ocr_adapter
         captured["low_text_chars"] = low_text_chars
 

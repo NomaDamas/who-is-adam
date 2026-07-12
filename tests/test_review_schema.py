@@ -89,6 +89,10 @@ def test_offline_config_forces_fake_provider() -> None:
     assert config.llm.provider is LlmProvider.FAKE
 
 
+def test_fake_llm_without_offline_flag_does_not_claim_offline_external_providers() -> None:
+    assert ReviewConfig().provider_mode is ProviderMode.HOSTED
+
+
 def test_hosted_llm_requires_json_schema_capability() -> None:
     with pytest.raises(ValidationError, match="JSON-schema output support"):
         LlmConfig(

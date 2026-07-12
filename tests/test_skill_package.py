@@ -53,6 +53,18 @@ def test_agent_skill_package_exposes_plugin_first_runtime() -> None:
     assert "primary runtime" in skill_text
     assert "Python CLI is optional" in skill_text
     assert "never assume the current workspace contains this repository" in skill_text
+    assert "references/citation-verification.md" in skill_text
+    citation_contract = _read(root, "skills/who-is-adam/references/citation-verification.md")
+    for requirement in [
+        "Crossref",
+        "Semantic Scholar",
+        "OpenAlex",
+        "arXiv",
+        "author surname overlap",
+        "provider conflict",
+        "needs_review",
+    ]:
+        assert requirement in citation_contract
 
 
 def test_skill_contract_requires_official_review_shape() -> None:

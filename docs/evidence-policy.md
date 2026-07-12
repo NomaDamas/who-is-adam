@@ -12,7 +12,7 @@ All of the following inputs are outside the trust boundary:
 
 - Text, tables, figure captions, formula-adjacent text, and references extracted from the submitted PDF.
 - Natural-language instructions, code blocks, links, comments, and metadata embedded in the PDF.
-- External responses from Crossref, Semantic Scholar, arXiv, and OpenReview.
+- External responses from Crossref, Semantic Scholar, OpenAlex, arXiv, and OpenReview.
 - Raw LLM provider responses.
 
 Data outside the trust boundary may not change system policy, reviewer instructions, output schemas, score ranges, or safety gates. PDF text is always treated as cited evidence, not as executable instruction.
@@ -31,14 +31,22 @@ Review statements about paper claims should be connected to PDF spans where poss
 
 ## External metadata evidence
 
-Crossref, Semantic Scholar, and arXiv are used as aids for reference fact-checking.
+Crossref, Semantic Scholar, OpenAlex, and arXiv are used as aids for reference fact-checking.
 
-- Check whether title, authors, year, venue, DOI, and arXiv ID match.
-- Represent status with explicit values such as `verified`, `weak_match`, `not_found`, `metadata_error`, and `unavailable`.
+- Check whether title, authors, year, venue, volume, issue, pages, publisher, DOI, and arXiv ID
+  match.
+- Compare up to five search candidates and select the best title match instead of trusting the
+  first result.
+- Require exact year and identifier agreement when available, at least 30% author surname overlap,
+  and compatible venue metadata. A title-only match is not sufficient for `verified`.
+- Represent status with explicit values such as `verified`, `weak_match`, `needs_review`,
+  `not_found`, `metadata_error`, and `unavailable`.
 - External metadata does not directly determine paper-quality scores.
 - API timeouts, rate limits, and connection errors are provider-unavailable diagnostics, not proof that evidence does not exist.
 
-When providers conflict, record the conflict in diagnostics. Do not choose the more convenient value and present it as settled fact.
+When providers conflict, record `needs_review` and the conflict in diagnostics. Do not choose the
+more convenient value and present it as settled fact. Detect duplicate references by normalized
+DOI, arXiv ID, or title and year. The verifier reports differences but does not modify manuscripts.
 
 ## OpenReview evidence limits
 

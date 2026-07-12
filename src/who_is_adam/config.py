@@ -27,6 +27,12 @@ class HttpProviderConfig(BaseModel):
     max_retries: int = Field(default=2, ge=0)
     api_key: str | None = None
 
+    @model_validator(mode="after")
+    def require_https_for_api_keys(self) -> "HttpProviderConfig":
+        if self.api_key and self.base_url.scheme != "https":
+            raise ValueError("provider API keys require HTTPS base URLs")
+        return self
+
 
 class LlmConfig(BaseModel):
     provider: LlmProvider = LlmProvider.FAKE
@@ -81,6 +87,11 @@ class ReviewConfig(BaseModel):
             {"base_url": "https://export.arxiv.org/api/query"}
         )
     )
+    openalex: HttpProviderConfig = Field(
+        default_factory=lambda: HttpProviderConfig.model_validate(
+            {"base_url": "https://api.openalex.org"}
+        )
+    )
     crossref_mailto: str | None = None
     ocr_enabled: bool = False
     tesseract_cmd: str | None = None
@@ -94,7 +105,7 @@ class ReviewConfig(BaseModel):
 
     @property
     def provider_mode(self) -> ProviderMode:
-        return ProviderMode.OFFLINE if self.offline or self.llm.provider is LlmProvider.FAKE else ProviderMode.HOSTED
+        return ProviderMode.OFFLINE if self.offline else ProviderMode.HOSTED
 
     @model_validator(mode="after")
     def force_fake_llm_when_offline(self) -> "ReviewConfig":
@@ -106,7 +117,11 @@ class ReviewConfig(BaseModel):
     def from_env(cls, env: Mapping[str, str] | None = None) -> "ReviewConfig":
         values = os.environ if env is None else env
         offline = _bool(values.get("WHO_IS_ADAM_OFFLINE"), default=False)
-        llm_provider: LlmProvider | str = LlmProvider.FAKE if offline else values.get("WHO_IS_ADAM_LLM_PROVIDER", LlmProvider.FAKE)
+        llm_provider: LlmProvider | str = (
+            LlmProvider.FAKE
+            if offline
+            else values.get("WHO_IS_ADAM_LLM_PROVIDER", LlmProvider.FAKE)
+        )
         return cls.model_validate(
             {
                 "offline": offline,
@@ -127,6 +142,7 @@ class ReviewConfig(BaseModel):
                 ),
                 "crossref": _http(values, "CROSSREF", "https://api.crossref.org"),
                 "arxiv": _http(values, "ARXIV", "https://export.arxiv.org/api/query"),
+                "openalex": _http(values, "OPENALEX", "https://api.openalex.org"),
                 "crossref_mailto": _none_empty(values.get("WHO_IS_ADAM_CROSSREF_MAILTO")),
                 "ocr_enabled": _bool(values.get("WHO_IS_ADAM_OCR_ENABLED"), default=False),
                 "tesseract_cmd": _none_empty(values.get("WHO_IS_ADAM_TESSERACT_CMD")),
