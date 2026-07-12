@@ -6,7 +6,7 @@ English original: [../skill-guide.md](../skill-guide.md).
 
 `who-is-adam`에는 두 가지 실행 표면이 있습니다. 기본 표면은 Codex 또는 Claude Code에 설치되는 스킬입니다. 호스트 에이전트가 로컬 PDF를 직접 읽고, 데스크 체크와 독립 리뷰 관점, 적대적 숙의, 종합 리뷰를 수행합니다. 이 기본 스킬 워크플로에는 Python이 필요하지 않습니다.
 
-두 번째 표면은 `who_is_adam.cli.review`와 `who_is_adam.review.orchestrator.run_review`에 연결된 Python CLI입니다. CLI는 개발과 진단을 위한 오프라인/fake 계약 검증, 추출 게이트, 원자적 저장을 제공합니다. hosted CLI 클라이언트는 아직 연결되어 있지 않습니다.
+두 번째 표면은 `who_is_adam.cli.review`와 `who_is_adam.review.orchestrator.run_review`에 연결된 Python CLI입니다. CLI는 개발과 진단을 위한 오프라인/fake 파이프라인 검증, 추출 게이트, 원자적 저장을 제공합니다. hosted CLI 클라이언트는 아직 연결되어 있지 않습니다.
 
 ## 설치와 CLI 도움말
 
@@ -56,7 +56,7 @@ cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
 cp -R skills/who-is-adam ~/.codex/skills/who-is-adam
 ```
 
-슬래시 스킬을 지원하지 않는 호스트에서는 설치된 스킬과 로컬 PDF 경로를 명시하는 자연어 트리거를 사용합니다. `SKILL.md` 자체가 리뷰 실행 표면이고 Python CLI는 선택적 진단 도구입니다. fake CLI 출력과 `unavailable` 외부 근거는 계약 테스트용이며 실제 논문 리뷰가 아닙니다.
+슬래시 스킬을 지원하지 않는 호스트에서는 설치된 스킬과 로컬 PDF 경로를 명시하는 자연어 트리거를 사용합니다. `SKILL.md` 자체가 리뷰 실행 표면이고 Python CLI는 선택적 진단 도구입니다. fake CLI 출력과 `unavailable` 외부 근거는 파이프라인 테스트용이며 실제 논문 리뷰가 아닙니다.
 
 ## 환경 설정
 
@@ -64,7 +64,7 @@ cp -R skills/who-is-adam ~/.codex/skills/who-is-adam
 
 ## 현재 오프라인/fake 제한
 
-이 제한은 선택적 Python CLI에만 적용됩니다. 오프라인 fake 리뷰는 오케스트레이션, 거절, 렌더링, 출력 저장을 위한 계약 테스트이며 실제 논문 품질 리뷰가 아닙니다. 실제 플러그인 리뷰는 호스트 에이전트가 수행하고, CLI의 hosted production review 생성은 아직 사용할 수 없습니다. fake CLI 출력은 실제 논문 분석으로 제시하면 안 됩니다.
+이 제한은 선택적 Python CLI에만 적용됩니다. 오프라인 fake 리뷰는 오케스트레이션, 거절, 렌더링, 출력 저장을 위한 파이프라인 테스트이며 실제 논문 품질 리뷰가 아닙니다. 실제 플러그인 리뷰는 호스트 에이전트가 수행하고, CLI의 hosted production review 생성은 아직 사용할 수 없습니다. fake CLI 출력은 실제 논문 분석으로 제시하면 안 됩니다.
 
 ## 입력/출력 계약
 

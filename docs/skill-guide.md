@@ -6,7 +6,7 @@ Korean translation: [ko/skill-guide.md](ko/skill-guide.md).
 
 `who-is-adam` has two distinct surfaces. The primary surface is the installed Codex or Claude Code skill: the host agent reads one local PDF, performs desk checks, produces independent reviewer lenses and adversarial deliberation, and synthesizes the official ICML review fields into an evidence-grounded Markdown review. This normal skill workflow is prompt-driven and does not require Python.
 
-The secondary surface is the Python CLI wired through `who_is_adam.cli.review` and `who_is_adam.review.orchestrator.run_review`. It provides deterministic offline/fake-provider contract checks, extraction gates, and atomic persistence for development and diagnostics. Hosted LLM configuration fields exist, but hosted CLI clients are not wired in this checkpoint.
+The secondary surface is the Python CLI wired through `who_is_adam.cli.review` and `who_is_adam.review.orchestrator.run_review`. It provides deterministic offline/fake-provider pipeline diagnostics, extraction gates, and atomic persistence for development and diagnostics. Hosted LLM configuration fields exist, but hosted CLI clients are not wired in this checkpoint.
 
 ## Installation and CLI help
 
@@ -56,7 +56,7 @@ cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
 cp -R skills/who-is-adam ~/.codex/skills/who-is-adam
 ```
 
-For hosts without slash skills, use a natural-language trigger naming the installed skill and local PDF. The `SKILL.md` workflow itself is the review execution surface. The Python CLI is optional and its fake output remains contract-test data, not production review quality.
+For hosts without slash skills, use a natural-language trigger naming the installed skill and local PDF. The `SKILL.md` workflow itself is the review execution surface. The Python CLI is optional and its fake output remains pipeline-test data, not production review quality.
 
 ## Environment setup
 
@@ -64,7 +64,7 @@ Normal plugin use requires no environment variables. For optional CLI checks, se
 
 ## Current offline/fake limitation
 
-This limitation applies to the optional Python CLI, not the normal installed skill. Offline fake reviews are deterministic contract tests for orchestration, refusal, rendering, and output persistence; they are not real paper-quality reviews. Real plugin reviews are performed by the host agent, while hosted production review generation remains unavailable in the CLI. Fake CLI output must not be presented as real paper analysis.
+This limitation applies to the optional Python CLI, not the normal installed skill. Offline fake reviews are deterministic pipeline tests for orchestration, refusal, rendering, and output persistence; they are not real paper-quality reviews. Real plugin reviews are performed by the host agent, while hosted production review generation remains unavailable in the CLI. Fake CLI output must not be presented as real paper analysis.
 
 ## Input/output contract
 

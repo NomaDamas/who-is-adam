@@ -87,7 +87,7 @@ Python CLI는 선택적 오프라인 파이프라인 진단 도구입니다. fak
 
 ## 빠른 시작 CLI
 
-오프라인/fake 제공자 기반 CLI는 구현되어 있으며, 네트워크와 실제 API 키 없이 fake LLM으로 계약 검증용 리뷰 초안을 저장합니다. 외부 제공자 근거는 fixture로 대체하지 않고 `unavailable`로 기록합니다.
+오프라인/fake 제공자 기반 CLI는 구현되어 있으며, 네트워크와 실제 API 키 없이 fake LLM으로 파이프라인 검증용 리뷰 초안을 저장합니다. 외부 제공자 근거는 fixture로 대체하지 않고 `unavailable`로 기록합니다.
 
 ```bash
 who-is-adam review paper.pdf --output-dir reviews --llm-policy "<assigned policy>" --code-of-conduct-ack --offline
