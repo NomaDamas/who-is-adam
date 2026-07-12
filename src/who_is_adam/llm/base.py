@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, Protocol, TypeVar
 
-from pydantic import BaseModel, TypeAdapter
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from who_is_adam.models import EvidenceSpan, SynthesizedReview
+from who_is_adam.models import EvidenceSpan, Finding, ReviewScores, SpecialistReview, SynthesizedReview
 
 JsonObject = dict[str, Any]
 SchemaType = type[BaseModel] | TypeAdapter[Any] | Mapping[str, Any]
@@ -39,7 +39,9 @@ class FakeLlmClient:
         safety_context: Mapping[str, str] | None = None,
     ) -> JsonObject:
         del safety_context
-        payload = self._responses.get(_role_key(prompt), _default_review_payload())
+        payload = self._responses.get(_role_key(prompt))
+        if payload is None:
+            payload = _default_payload_for_schema(schema, role=_role_key(prompt))
         return _validate_payload(payload, schema)
 
 
@@ -69,6 +71,49 @@ def _dump_validated(value: Any) -> JsonObject:
         return dict(value)
     raise TypeError("schema-constrained fake response must validate to a JSON object")
 
+
+
+def _default_payload_for_schema(schema: SchemaType, *, role: str) -> JsonObject:
+    if isinstance(schema, type) and issubclass(schema, SpecialistReview):
+        return _default_specialist_review_payload(role)
+    if isinstance(schema, type) and issubclass(schema, SynthesizedReview):
+        return _default_review_payload()
+    for payload in (_default_specialist_review_payload(role), _default_review_payload()):
+        if _payload_validates(payload, schema):
+            return payload
+    return _default_review_payload()
+
+
+def _payload_validates(payload: JsonObject, schema: SchemaType) -> bool:
+    try:
+        _validate_payload(payload, schema)
+    except (TypeError, ValueError, ValidationError):
+        return False
+    return True
+
+
+def _default_specialist_review_payload(role: str) -> JsonObject:
+    evidence = EvidenceSpan(page=1, section="Abstract", text="Deterministic offline evidence.")
+    review = SpecialistReview(
+        role=role if role != "default" else "methodology",
+        findings=[
+            Finding(
+                claim="Deterministic specialist finding cites extracted paper evidence.",
+                evidence=[evidence],
+            )
+        ],
+        scores=ReviewScores(
+            soundness=3,
+            presentation=3,
+            significance=3,
+            originality=3,
+            overall_recommendation=4,
+            confidence=3,
+        ),
+        evidence=[evidence],
+        uncertainty="Offline fake specialist review is for contract testing only.",
+    )
+    return review.model_dump(mode="json")
 
 def _default_review_payload() -> JsonObject:
     evidence = EvidenceSpan(page=1, section="Abstract", text="Deterministic offline evidence.")

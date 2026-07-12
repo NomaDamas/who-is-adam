@@ -10,8 +10,15 @@ import typer
 from rich.console import Console
 
 from who_is_adam.config import ReviewConfig
+from who_is_adam.models import ReviewRunStatus
+from who_is_adam.review.orchestrator import run_review
 
 app = typer.Typer(help="Evidence-grounded ICML PDF review assistant.")
+
+
+@app.callback()
+def main() -> None:
+    """Evidence-grounded ICML PDF review assistant."""
 console = Console()
 error_console = Console(stderr=True)
 
@@ -23,23 +30,6 @@ class ExitCode(IntEnum):
     INTERNAL = 4
 
 
-class OrchestratorUnavailableError(RuntimeError):
-    """Raised until the review orchestrator checkpoint is implemented."""
-
-
-def _review_with_orchestrator(
-    *,
-    pdf_path: Path,
-    output_dir: Path,
-    llm_policy: str,
-    code_of_conduct_acknowledged: bool,
-    config: ReviewConfig,
-) -> Path:
-    del pdf_path, output_dir, llm_policy, code_of_conduct_acknowledged, config
-    raise OrchestratorUnavailableError(
-        "Review orchestration is not implemented yet; checkpoint 7 will wire PDF extraction, "
-        "safety gates, evidence clients, synthesis, and Markdown persistence."
-    )
 
 
 @app.command()
@@ -70,16 +60,27 @@ def review(
         if offline:
             config = config.model_copy(update={"offline": True})
             config = ReviewConfig.model_validate(config.model_dump(mode="python"))
-        output_path = _review_with_orchestrator(
+        result = run_review(
             pdf_path=pdf_path,
             output_dir=output_dir,
             llm_policy=llm_policy,
             code_of_conduct_acknowledged=code_of_conduct_ack,
             config=config,
         )
-    except OrchestratorUnavailableError as exc:
-        error_console.print(f"[yellow]Review unavailable:[/yellow] {exc}")
-        raise typer.Exit(ExitCode.INTERNAL) from exc
+        if result.status is ReviewRunStatus.REFUSED:
+            refusal = result.refusal
+            reason = refusal.reason if refusal is not None else "review refused"
+            error_console.print(f"[yellow]Review refused:[/yellow] {reason}")
+            if refusal is not None:
+                for diagnostic in refusal.diagnostics:
+                    error_console.print(diagnostic.model_dump_json())
+            raise typer.Exit(ExitCode.REFUSED)
+        if result.output_path is None:
+            error_console.print("[red]Internal error:[/red] orchestrator did not return an output path.")
+            raise typer.Exit(ExitCode.INTERNAL)
+        output_path = result.output_path
+    except typer.Exit:
+        raise
     except ValueError as exc:
         error_console.print(f"[red]Configuration error:[/red] {exc}")
         raise typer.Exit(ExitCode.CONFIG) from exc
