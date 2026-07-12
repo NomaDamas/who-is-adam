@@ -41,6 +41,7 @@ packages = ["src/who_is_adam"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src", "."]
 
 [tool.mypy]
 python_version = "3.11"

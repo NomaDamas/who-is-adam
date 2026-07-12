@@ -45,7 +45,7 @@ def test_agent_skill_package_exposes_plugin_first_runtime() -> None:
         "codex plugin add who-is-adam@who-is-adam",
         "Use $who-is-adam to review /path/to/paper.pdf.",
         "Python is not required",
-        "optional deterministic/offline contract checks",
+        "optional deterministic/offline pipeline diagnostics",
     ]
     missing = [needle for needle in install_needles if needle not in readme_text]
     assert not missing, f"README.md missing plugin-first install details {missing}"

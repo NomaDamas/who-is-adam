@@ -19,7 +19,7 @@
   "interface": {
     "displayName": "who-is-adam",
     "shortDescription": "Desk-check and peer-review academic PDFs.",
-    "longDescription": "Installs the Who is ADAM skill for direct desk checks, multi-perspective manuscript review, adversarial deliberation, and evidence-grounded Markdown output. Python CLI checks are optional diagnostics.",
+    "longDescription": "Installs the Who is ADAM skill for direct desk checks, multi-perspective manuscript review, adversarial deliberation, and evidence-grounded Markdown output. Python pipeline diagnostics are optional.",
     "developerName": "NomaDamas",
     "category": "Productivity",
     "capabilities": [

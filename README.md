@@ -37,9 +37,9 @@ Use $who-is-adam to review /path/to/paper.pdf.
 ```
 
 The installed plugin provides the complete skill workflow. The repository's Python CLI remains
-available for optional deterministic/offline contract checks, but it is not the review engine used
+available for optional deterministic/offline pipeline diagnostics, but it is not the review engine used
 by the normal installed skill. That optional offline path uses a fake LLM and records unavailable
-external evidence as `unavailable`; it is contract-test output, not a real manuscript review.
+external evidence as `unavailable`; it is pipeline-test output, not a real manuscript review.
 
 ## Workflow
 

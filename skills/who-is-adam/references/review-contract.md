@@ -7,7 +7,7 @@ This file defines the portable output and evidence contract for the `who-is-adam
 Every completed review or refusal must include:
 
 - `pdf_path`: local path reviewed.
-- `review_mode`: one of `full`, `quick`, `methodology_focus`, `desk_only`, `content_only_format_waived`, `offline_contract_test`, or `refusal`.
+- `review_mode`: one of `full`, `quick`, `methodology-focus`, `desk-only`, `content-only-format-waived`, `offline-pipeline-diagnostic`, or `refusal`.
 - `analysis_source`: `host_agent_pdf_reading`, `verified_hosted_adapter`, or `none_for_refusal`.
 - `cli_check`: `not_requested`, `unavailable`, or the command, exit code, offline flag, output path, and diagnostics.
 - `llm_policy_record`: include only when the optional official-review CLI path was used.
