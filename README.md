@@ -1,5 +1,7 @@
 # who-is-adam
 
+![Main figure: tweet asking who Adam is in response to an ICML review screenshot](assets/main-figure.jpeg)
+
 English is the default project documentation. Current English docs: [product proposal](docs/product-proposal.md), [operator guide](docs/operator-guide.md), [evidence policy](docs/evidence-policy.md), [implementation checkpoints](docs/implementation-checkpoints.md), and [skill guide](docs/skill-guide.md). Korean translations are available under `docs/ko/`, starting with [docs/ko/README.md](docs/ko/README.md).
 
 ## Product proposal summary
