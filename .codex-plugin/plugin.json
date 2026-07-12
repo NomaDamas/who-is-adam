@@ -1,0 +1,37 @@
+{
+  "name": "who-is-adam",
+  "version": "0.1.0",
+  "description": "Evidence-grounded ICML PDF review assistant for agent runtimes.",
+  "author": {
+    "name": "NomaDamas",
+    "url": "https://github.com/NomaDamas"
+  },
+  "homepage": "https://github.com/NomaDamas/who-is-adam",
+  "repository": "https://github.com/NomaDamas/who-is-adam",
+  "license": "MIT",
+  "keywords": [
+    "icml",
+    "review",
+    "pdf",
+    "agent-skill"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "who-is-adam",
+    "shortDescription": "Review ICML-style PDFs with evidence-grounded checks.",
+    "longDescription": "Installs the who-is-adam agent skill for local ICML-style PDF review workflows. The skill calls the who-is-adam CLI for deterministic offline checks and Markdown review artifact generation.",
+    "developerName": "NomaDamas",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/NomaDamas/who-is-adam",
+    "defaultPrompt": [
+      "Use who-is-adam to review this local ICML PDF.",
+      "Run an offline who-is-adam smoke test.",
+      "Check this paper for ICML review readiness."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

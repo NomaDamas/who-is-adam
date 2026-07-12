@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "who-is-adam",
+  "version": "0.1.0",
+  "description": "Evidence-grounded ICML PDF review assistant for Claude Code.",
+  "author": {
+    "name": "NomaDamas"
+  },
+  "homepage": "https://github.com/NomaDamas/who-is-adam",
+  "repository": "https://github.com/NomaDamas/who-is-adam",
+  "license": "MIT",
+  "keywords": [
+    "icml",
+    "review",
+    "pdf",
+    "skill"
+  ],
+  "skills": [
+    "./skills/who-is-adam"
+  ]
+}

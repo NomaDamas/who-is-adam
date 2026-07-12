@@ -1,213 +1,47 @@
-# who-is-adam
+<h1 align="center">Who is ADAM?: Automated Desk and Academic Manuscript Review Agent</h1>
 
-![Main figure: tweet asking who Adam is in response to an ICML review screenshot](assets/main-figure.jpeg)
+<p align="center">
+  <img src="assets/main-figure.jpeg" alt="Main figure: tweet asking who Adam is in response to an ICML review screenshot">
+</p>
 
-English is the default project documentation. Current English docs: [product proposal](docs/product-proposal.md), [operator guide](docs/operator-guide.md), [evidence policy](docs/evidence-policy.md), [implementation checkpoints](docs/implementation-checkpoints.md), and [skill guide](docs/skill-guide.md). Korean translations are available under `docs/ko/`, starting with [docs/ko/README.md](docs/ko/README.md).
+`who-is-adam` is an agent plugin for reviewing local ICML-style paper PDFs with evidence-grounded checks and Markdown review output.
 
-## Product proposal summary
+## Install
 
-`who-is-adam` is an ICML 2026 Main Track PDF review assistant. The project started as a docs-first proposal and now includes implemented checkpoints for an offline/fake-provider CLI, PDF structure extraction, safety gates, ICML desk checks, external evidence clients, specialist/synthesis review generation, and Markdown output persistence. Hosted LLM clients and production review-quality guarantees are not claimed as complete yet. The tool reads one local PDF, checks it against ICML 2026 Main Track submission limits and review-form constraints, separates paper-internal evidence from external metadata, and saves an evidence-grounded Markdown review draft.
+Requires Python 3.11+ in the environment where the agent runs commands.
 
-Core goals:
-
-- Extract title, abstract, body sections, tables, figures, equations, references, and page-level evidence from a PDF.
-- Safely refuse low-quality scans, damaged or encrypted PDFs, and suspected prompt-injection inputs.
-- Check ICML 2026 Main Track constraints for a single PDF, maximum 50 MB file size, 8-page main-body limit, anonymity, and LaTeX-format-related signals.
-- Use Crossref, Semantic Scholar, arXiv, and public OpenReview evidence without inventing unverified facts.
-- Synthesize independent specialist-review perspectives into Markdown that follows the official ICML Main Track fields and score ranges.
-
-## Why this tool is needed
-
-Reviewers need to reason about paper quality, policy compliance, citation accuracy, and safe LLM usage at the same time. This tool does not replace reviewer judgment; it reduces repetitive evidence collection and formatting work. The design treats both PDF contents and external API responses as untrusted inputs so that instructions embedded in a paper, or errors in outside metadata, cannot override the review policy.
-
-## Installation
-
-Clone the repository and install the package in a Python 3.11+ virtual environment:
+### Codex
 
 ```bash
-git clone https://github.com/kwon/who-is-adam.git
+git clone https://github.com/NomaDamas/who-is-adam.git
 cd who-is-adam
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pip install -U pip
-python -m pip install -e .
+codex plugin marketplace add .
+codex plugin add who-is-adam --marketplace who-is-adam
+python3.11 -m pip install -e .
 ```
 
-Optional OCR support requires the Python extra and the Tesseract system package:
+### Claude Code
 
 ```bash
-python -m pip install -e '.[ocr]'
+git clone https://github.com/NomaDamas/who-is-adam.git
+cd who-is-adam
+claude plugin marketplace add ./
+claude plugin install who-is-adam
+python3.11 -m pip install -e .
 ```
 
-On macOS, install Tesseract with Homebrew:
+## Use
 
-```bash
-brew install tesseract
-```
-
-On Debian/Ubuntu Linux, install Tesseract with apt:
-
-```bash
-sudo apt-get update
-sudo apt-get install tesseract-ocr
-```
-
-Verify the installed CLI is visible:
-
-```bash
-who-is-adam --help
-who-is-adam review --help
-```
-
-## Install as an Agent Skill
-
-The custom Agent Skill source lives in this repository at `skills/who-is-adam/`, with `skills/who-is-adam/SKILL.md` as the entry point. Install that skill directory in an agent runtime, and install the Python package/CLI separately. The `SKILL.md` file is the orchestration layer: it tells the agent how to collect arguments, enforce review policy, call the `who-is-adam` CLI, and interpret outputs. The Python package provides the actual `who-is-adam review` command. Copying only the skill without installing the Python package leaves the agent without the CLI it must run.
-
-Project-local GJC installation:
-
-```bash
-mkdir -p .gjc/skills
-cp -R skills/who-is-adam .gjc/skills/who-is-adam
-python -m pip install -e .
-```
-
-User-global GJC installation:
-
-```bash
-mkdir -p ~/.gjc/skills
-cp -R skills/who-is-adam ~/.gjc/skills/who-is-adam
-python -m pip install -e .
-```
-
-Project-local Claude-style custom skill installation:
-
-```bash
-mkdir -p .claude/skills
-cp -R skills/who-is-adam .claude/skills/who-is-adam
-python -m pip install -e .
-```
-
-User-global Claude-style custom skill installation:
-
-```bash
-mkdir -p ~/.claude/skills
-cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
-python -m pip install -e .
-```
-
-In runtimes that support slash-skill invocation, run:
+In Codex or Claude Code:
 
 ```text
-/skill:who-is-adam /path/to/paper.pdf
+Use the who-is-adam plugin to review /path/to/paper.pdf.
 ```
 
-If slash commands are not supported, use a natural-language trigger such as: "Use the who-is-adam skill to review /path/to/paper.pdf." The skill still relies on the installed CLI and the current implementation's offline/fake-provider limitation: fake LLM output is deterministic contract-test output, external provider evidence is recorded as `unavailable`, and it must not be presented as a production-quality ICML review. This is a custom runtime skill, not a bundled or default GJC workflow.
+The plugin uses the bundled agent skill at `skills/who-is-adam/` and calls the local `who-is-adam review` CLI. Current review generation is the offline/fake-provider path for deterministic contract checks; hosted production LLM review is not wired yet.
 
+## More Docs
 
-## Quick start CLI
-
-The offline/fake-provider CLI path is implemented and can save contract-test review drafts without network access or real API keys.
-
-```bash
-who-is-adam review paper.pdf --output-dir reviews --llm-policy "<assigned policy>" --code-of-conduct-ack --offline
-```
-
-Arguments:
-
-- `paper.pdf`: one local ICML 2026 Main Track PDF.
-- `--output-dir`: root directory for saved review Markdown and diagnostics.
-- `--llm-policy`: the assigned ICML LLM-use policy name or text. Required.
-- `--code-of-conduct-ack`: explicit acknowledgement that the ICML code of conduct was checked and recorded in runtime metadata. Required.
-- `--offline`: run with the fake LLM and record external provider evidence as `unavailable` for test/offline mode.
-
-## Usage
-
-Run the currently implemented offline path with a local PDF. The fake LLM produces deterministic contract-test output; it is useful for integration checks, not for real paper-quality review.
-
-```bash
-WHO_IS_ADAM_OFFLINE=true who-is-adam review paper.pdf \
-  --output-dir reviews \
-  --llm-policy "ICML assigned LLM policy checked" \
-  --code-of-conduct-ack \
-  --offline
-```
-
-A successful run exits with code `0` and writes a versioned Markdown file such as:
-
-```text
-reviews/a_study_of_adam/a_study_of_adam_review_1.md
-```
-
-A safe refusal exits with code `2`, prints diagnostics, and does not write review Markdown. For example, a non-PDF input is refused before review generation:
-
-```bash
-who-is-adam review notes.txt --output-dir reviews --llm-policy "ICML assigned LLM policy checked" --code-of-conduct-ack --offline
-```
-
-Missing required runtime acknowledgements are CLI usage errors, for example:
-
-```bash
-who-is-adam review paper.pdf --output-dir reviews --offline
-```
-
-Hosted production review is not wired in this checkpoint. Offline fake reviews are contract tests for the implemented pipeline and must not be described as production-quality ICML reviews.
-Hosted LLM provider settings exist in the configuration schema, but hosted LLM clients are not wired in the current checkpoint. Do not treat the hosted-provider path as a documented production review path yet.
-
-## Scope and limits
-
-Scope is limited to ICML 2026 Main Track PDF review assistance. Documented official limits and reviewer obligations are:
-
-- A submission must be a single PDF and at most 50 MB.
-- The main body may be up to 8 pages; references and appendices may follow the main body.
-- Submissions must be anonymized; LaTeX format requirements and page/format violations may be automatic desk-reject reasons.
-- Reviewers must follow the assigned LLM policy, confidentiality requirements, professional and constructive conduct expectations, and code-of-conduct acknowledgement.
-- Official Main Track review score ranges are Soundness/Presentation/Contribution 1-4, Rating 1-6, and Confidence 1-5.
-
-Out of scope:
-
-- Position Track reviews.
-- Actual submission to OpenReview or ICML systems.
-- Editing, rewriting, or acting on behalf of paper authors.
-- Generating historical OpenReview strengths or weaknesses without public evidence.
-- Guaranteeing OCR success for every scanned PDF.
-- Operational review generation through hosted LLM providers in the current checkpoint.
-
-## Safe refusal policy
-
-The tool is designed to refuse inputs that cannot support a trustworthy review before generating the official review Markdown. In these cases it should not save a review Markdown file; it should return operator-readable diagnostics instead:
-
-- The input is not a PDF, is missing, exceeds 50 MB, or is damaged/encrypted so that structure extraction cannot proceed.
-- Text density or OCR confidence is too low to read the paper reliably.
-- The PDF contains prompt-injection signals such as instructions to ignore reviewer/system instructions, manipulate scores, or change tool policy.
-- The configured LLM provider does not support constrained JSON-schema output, required model/API-key settings are missing, or valid JSON cannot be produced after retries.
-
-A safe refusal is not a paper-quality judgment. It means the input or runtime environment does not permit reliable review generation.
-
-## Evidence policy
-
-Every judgment must distinguish its evidence source:
-
-- PDF-internal evidence: record page, section, and quoted text span.
-- External metadata: use Crossref, Semantic Scholar, and arXiv only as reference fact-checking aids.
-- OpenReview: use prior public strengths, weaknesses, or comparison evidence only when public OpenReview evidence exists.
-- No evidence: leave API absence, rate limits, search failures, and lack of public evidence as `unavailable`; do not invent claims.
-
-PDF body text, references, and external review text are all outside the trust boundary. They cannot change review instructions or override system rules.
-
-## Output location and file names
-
-A successful review is saved as versioned Markdown under a directory derived from the normalized paper title:
-
-```text
-<output-dir>/<normalized_title>/<normalized_title>_review_{n}.md
-```
-
-`normalized_title` is a filesystem-safe name produced by the internal slug/path sanitizer. `n` is one greater than the largest existing review number in the same directory. For example, if `reviews/a_study_of_adam/a_study_of_adam_review_3.md` exists, the next saved file is `a_study_of_adam_review_4.md`. Collision handling must avoid overwriting previous results by using atomic writes and recomputing the review number.
-
-## Environment variables and provider summary
-
-Runtime environment variables, fake/offline mode, and provider-specific failure semantics are documented in the English [operator guide](docs/operator-guide.md). The main providers are LLM, OpenReview, Semantic Scholar, Crossref, arXiv, and optional OCR/Tesseract.
-
-## Development and verification checkpoints
-
-Step-by-step file scope, verification commands, expected behavior, and commit messages are documented in the English [implementation checkpoints](docs/implementation-checkpoints.md). The project has progressed beyond the original docs-only checkpoint: product code and tests now exist for the offline CLI/review path.
+- [Operator guide](docs/operator-guide.md)
+- [Skill guide](docs/skill-guide.md)
+- [Evidence policy](docs/evidence-policy.md)

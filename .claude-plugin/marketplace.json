@@ -1,0 +1,21 @@
+{
+  "name": "who-is-adam",
+  "metadata": {
+    "description": "Plugin marketplace for the who-is-adam ICML PDF review assistant.",
+    "version": "0.1.0"
+  },
+  "owner": {
+    "name": "NomaDamas"
+  },
+  "plugins": [
+    {
+      "name": "who-is-adam",
+      "description": "Review local ICML-style PDFs with evidence-grounded checks.",
+      "version": "0.1.0",
+      "author": {
+        "name": "NomaDamas"
+      },
+      "source": "."
+    }
+  ]
+}
