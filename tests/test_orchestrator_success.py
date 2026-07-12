@@ -3,8 +3,11 @@ from __future__ import annotations
 from typer.testing import CliRunner
 
 from who_is_adam.cli import app
+from who_is_adam.config import ReviewConfig
 
 from who_is_adam.llm.base import FakeLlmClient
+from who_is_adam.pdf.ocr import NullOcrAdapter
+from who_is_adam.review import orchestrator
 from who_is_adam.models import RuntimeMetadata, SpecialistReview, SynthesizedReview
 from who_is_adam.output.markdown import OFFICIAL_SECTION_ORDER, SCORE_SCALE_TEXT, render_review_markdown
 from who_is_adam.output.paths import persist_markdown_atomic
@@ -111,3 +114,100 @@ def test_offline_cli_refuses_prompt_injection_without_internal_error(tmp_path, p
     assert "Review refused:" in result.stderr
     assert "Internal error: 2" not in result.stderr
     assert result.stderr.count("Internal error:") == 0
+
+
+def test_hosted_provider_capability_error_exits_config_not_internal(tmp_path, pdf_fixtures) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "review",
+            str(pdf_fixtures / "valid_icml_text.pdf"),
+            "--output-dir",
+            str(tmp_path),
+            "--llm-policy",
+            "ICML 2026 Main Track LLM policy",
+            "--code-of-conduct-ack",
+        ],
+        env={
+            "WHO_IS_ADAM_LLM_PROVIDER": "openai",
+            "WHO_IS_ADAM_LLM_MODEL": "test-model",
+            "WHO_IS_ADAM_LLM_API_KEY": "test-key",
+            "WHO_IS_ADAM_OFFLINE": "0",
+        },
+    )
+
+    assert result.exit_code == 3
+    assert "Configuration error:" in result.stderr
+    assert "hosted LLM clients are not wired" in result.stderr
+    assert "Internal error:" not in result.stderr
+
+
+def test_pdf_extractor_uses_null_ocr_adapter_when_ocr_disabled(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def capture_init(self: object, *, ocr_adapter: object | None = None, low_text_chars: int = 200) -> None:
+        captured["ocr_adapter"] = ocr_adapter
+        captured["low_text_chars"] = low_text_chars
+
+    monkeypatch.setattr(orchestrator.PdfExtractor, "__init__", capture_init)
+
+    extractor = orchestrator._pdf_extractor(ReviewConfig(offline=True, ocr_enabled=False))
+
+    assert isinstance(extractor, orchestrator.PdfExtractor)
+    assert isinstance(captured["ocr_adapter"], NullOcrAdapter)
+
+
+def test_pdf_extractor_wires_tesseract_adapter_when_ocr_enabled(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTesseractOcrAdapter:
+        def __init__(self, *, tesseract_cmd: str | None = None) -> None:
+            captured["tesseract_cmd"] = tesseract_cmd
+
+    def capture_init(self: object, *, ocr_adapter: object | None = None, low_text_chars: int = 200) -> None:
+        captured["ocr_adapter"] = ocr_adapter
+        captured["low_text_chars"] = low_text_chars
+
+    monkeypatch.setattr(orchestrator, "TesseractOcrAdapter", FakeTesseractOcrAdapter)
+    monkeypatch.setattr(orchestrator.PdfExtractor, "__init__", capture_init)
+
+    extractor = orchestrator._pdf_extractor(
+        ReviewConfig(offline=True, ocr_enabled=True, tesseract_cmd="/opt/bin/tesseract")
+    )
+
+    assert isinstance(extractor, orchestrator.PdfExtractor)
+    assert isinstance(captured["ocr_adapter"], FakeTesseractOcrAdapter)
+    assert captured["tesseract_cmd"] == "/opt/bin/tesseract"
+
+
+def test_ocr_adapter_initialization_failure_exits_config_not_internal(
+    tmp_path, pdf_fixtures, monkeypatch
+) -> None:
+    class FailingTesseractOcrAdapter:
+        def __init__(self, *, tesseract_cmd: str | None = None) -> None:
+            raise RuntimeError(f"missing OCR dependency for {tesseract_cmd}")
+
+    monkeypatch.setattr(orchestrator, "TesseractOcrAdapter", FailingTesseractOcrAdapter)
+    monkeypatch.setenv("WHO_IS_ADAM_OCR_ENABLED", "true")
+    monkeypatch.setenv("WHO_IS_ADAM_TESSERACT_CMD", "/opt/bin/tesseract")
+
+    result = runner.invoke(
+        app,
+        [
+            "review",
+            str(pdf_fixtures / "valid_icml_text.pdf"),
+            "--output-dir",
+            str(tmp_path),
+            "--llm-policy",
+            "ICML 2026 Main Track LLM policy",
+            "--code-of-conduct-ack",
+            "--offline",
+        ],
+    )
+
+    assert result.exit_code == 3
+    normalized_stderr = " ".join(result.stderr.split())
+    assert "Configuration error:" in result.stderr
+    assert "OCR is enabled but Tesseract OCR is not available" in normalized_stderr
+    assert "missing OCR dependency for /opt/bin/tesseract" in normalized_stderr
+    assert "Internal error:" not in result.stderr

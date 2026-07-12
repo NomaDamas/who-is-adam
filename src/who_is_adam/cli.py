@@ -11,7 +11,7 @@ from rich.console import Console
 
 from who_is_adam.config import ReviewConfig
 from who_is_adam.models import ReviewRunStatus
-from who_is_adam.review.orchestrator import run_review
+from who_is_adam.review.orchestrator import ReviewOrchestrationError, run_review
 
 app = typer.Typer(help="Evidence-grounded ICML PDF review assistant.")
 
@@ -81,7 +81,7 @@ def review(
         output_path = result.output_path
     except typer.Exit:
         raise
-    except ValueError as exc:
+    except (ReviewOrchestrationError, ValueError) as exc:
         error_console.print(f"[red]Configuration error:[/red] {exc}")
         raise typer.Exit(ExitCode.CONFIG) from exc
     except Exception as exc:

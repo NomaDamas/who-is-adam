@@ -1,6 +1,14 @@
 from __future__ import annotations
+from pathlib import Path
+from stat import S_IFREG
 
-from who_is_adam.models import ExtractionMetrics, PaperStructure, ReferenceEntry, SectionBlock
+import pytest
+
+from who_is_adam.config import ReviewConfig
+from who_is_adam.pdf.extractor import PdfExtractionError
+from who_is_adam.review import orchestrator
+
+from who_is_adam.models import ExtractionMetrics, PaperStructure, ReferenceEntry, ReviewRunStatus, SectionBlock
 from who_is_adam.safety.quality_gate import QualityThresholds, evaluate_pre_review_gates
 
 
@@ -52,3 +60,62 @@ def test_extraction_quality_refuses_before_llm() -> None:
     assert gate.status == "reject"
     assert any("extracted text too short" in reason for reason in gate.reasons)
     assert fake_llm.calls == 0
+
+
+def test_oversize_pdf_refuses_before_extraction_or_llm(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_llm = CountingFakeLlmClient()
+    pdf_path = tmp_path / "oversize.pdf"
+    pdf_path.touch()
+    monkeypatch.setattr(orchestrator.PdfExtractor, "extract", lambda self, path: pytest.fail("extraction should not run"))
+    monkeypatch.setattr(
+        Path,
+        "stat",
+        lambda self, *args, **kwargs: type(
+            "Stat", (), {"st_size": orchestrator.MAX_PDF_BYTES + 1, "st_mode": S_IFREG}
+        )(),
+    )
+
+    result = orchestrator.run_review(
+        pdf_path=pdf_path,
+        output_dir=tmp_path,
+        llm_policy="test-policy",
+        code_of_conduct_acknowledged=True,
+        config=ReviewConfig(offline=True),
+        llm_client=fake_llm,
+    )
+
+    assert result.status is ReviewRunStatus.REFUSED
+    assert result.refusal is not None
+    assert result.refusal.reason == "PDF input was refused before extraction"
+    assert "input_too_large" in result.refusal.diagnostics[0].reasons[0]
+    assert fake_llm.calls == 0
+    assert not any(tmp_path.glob("*_review_*.md"))
+
+
+def test_pdf_extraction_error_refuses_before_llm(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_llm = CountingFakeLlmClient()
+    pdf_path = tmp_path / "damaged.pdf"
+    pdf_path.write_bytes(b"%PDF-1.7\nnot a readable PDF")
+
+    def raise_extraction_error(self: object, path: Path) -> PaperStructure:
+        raise PdfExtractionError("encrypted or damaged PDF cannot be read")
+
+    monkeypatch.setattr(orchestrator.PdfExtractor, "extract", raise_extraction_error)
+
+    result = orchestrator.run_review(
+        pdf_path=pdf_path,
+        output_dir=tmp_path,
+        llm_policy="test-policy",
+        code_of_conduct_acknowledged=True,
+        config=ReviewConfig(offline=True),
+        llm_client=fake_llm,
+    )
+
+    assert result.status is ReviewRunStatus.REFUSED
+    assert result.refusal is not None
+    assert result.refusal.reason == "PDF extraction failed before review generation"
+    assert result.refusal.diagnostics[0].reasons == [
+        "pdf_extraction_error: encrypted or damaged PDF cannot be read"
+    ]
+    assert fake_llm.calls == 0
+    assert not any(tmp_path.glob("*_review_*.md"))
