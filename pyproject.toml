@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "who-is-adam"
+version = "0.1.0"
+description = "Evidence-grounded ICML PDF review assistant"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+dependencies = [
+  "typer",
+  "rich",
+  "pydantic>=2",
+  "pymupdf",
+  "pypdf",
+  "httpx",
+  "rapidfuzz",
+  "bibtexparser",
+]
+
+[project.optional-dependencies]
+ocr = [
+  "pytesseract",
+  "pillow",
+]
+dev = [
+  "pytest",
+  "respx",
+  "reportlab",
+  "mypy",
+  "ruff",
+]
+
+[project.scripts]
+who-is-adam = "who_is_adam.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/who_is_adam"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["who_is_adam"]
+
+[tool.ruff]
+target-version = "py311"
+src = ["src", "tests"]
+line-length = 100
