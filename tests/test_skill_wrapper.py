@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 
-def test_skill_wrapper_does_not_execute_ambient_path_binary(tmp_path) -> None:
+def test_skill_wrapper_does_not_execute_ambient_path_binary(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[1]
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()

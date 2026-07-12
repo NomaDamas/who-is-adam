@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from who_is_adam.output.paths import OutputPathError, collision_safe_path, persist_markdown_atomic
 
 
-def test_collision_safe_path_uses_versioned_max_plus_one(tmp_path) -> None:
+def test_collision_safe_path_uses_versioned_max_plus_one(tmp_path: Path) -> None:
     folder = tmp_path / "paper"
     folder.mkdir()
     base = folder / "paper_review_1.md"
@@ -16,7 +18,7 @@ def test_collision_safe_path_uses_versioned_max_plus_one(tmp_path) -> None:
     assert collision_safe_path(base) == folder / "paper_review_4.md"
 
 
-def test_persist_markdown_atomic_writes_complete_versioned_file(tmp_path) -> None:
+def test_persist_markdown_atomic_writes_complete_versioned_file(tmp_path: Path) -> None:
     folder = tmp_path / "test-paper"
     folder.mkdir()
     (folder / "test-paper_review_1.md").write_text("original", encoding="utf-8")
@@ -29,7 +31,7 @@ def test_persist_markdown_atomic_writes_complete_versioned_file(tmp_path) -> Non
     assert not list(folder.glob("*.tmp"))
 
 
-def test_persist_markdown_atomic_rejects_symlinked_paper_folder(tmp_path) -> None:
+def test_persist_markdown_atomic_rejects_symlinked_paper_folder(tmp_path: Path) -> None:
     output_dir = tmp_path / "reviews"
     outside_dir = tmp_path / "outside"
     output_dir.mkdir()
