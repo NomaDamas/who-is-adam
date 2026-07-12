@@ -59,33 +59,53 @@ def collision_safe_path(base_path: Path, *, max_collisions: int = 1000) -> Path:
 def persist_markdown_atomic(markdown: str, output_dir: Path, title: str) -> Path:
     """Persist Markdown with lowercase per-paper folder and exclusive versioned naming."""
     output_dir.mkdir(parents=True, exist_ok=True)
+    if output_dir.is_symlink():
+        raise OutputPathError(f"output directory must not be a symlink: {output_dir}")
     if not output_dir.is_dir():
         raise OutputPathError(f"output directory is not a directory: {output_dir}")
     base_path = markdown_output_path(output_dir, title)
+    if base_path.parent.is_symlink():
+        raise OutputPathError(f"paper output directory must not be a symlink: {base_path.parent}")
     base_path.parent.mkdir(parents=True, exist_ok=True)
+    if base_path.parent.is_symlink():
+        raise OutputPathError(f"paper output directory must not be a symlink: {base_path.parent}")
 
-    for _ in range(1001):
-        target = collision_safe_path(base_path)
-        _validate_markdown_path(target)
-        try:
-            fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
-        except FileExistsError:
-            continue
-        except OSError as exc:
-            raise OutputPathError(f"failed to persist Markdown atomically: {exc}") from exc
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as handle:
-                handle.write(markdown)
-                handle.flush()
-                os.fsync(handle.fileno())
-            return target
-        except OSError as exc:
+    directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        directory_fd = os.open(base_path.parent, directory_flags)
+    except OSError as exc:
+        raise OutputPathError(f"failed to open paper output directory safely: {exc}") from exc
+
+    try:
+        for _ in range(1001):
+            target = collision_safe_path(base_path)
+            _validate_markdown_path(target)
             try:
-                target.unlink(missing_ok=True)
-            except OSError:
-                pass
-            raise OutputPathError(f"failed to persist Markdown atomically: {exc}") from exc
-    raise OutputPathError("no collision-free output path after 1001 attempts")
+                fd = os.open(
+                    target.name,
+                    os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                    0o644,
+                    dir_fd=directory_fd,
+                )
+            except FileExistsError:
+                continue
+            except OSError as exc:
+                raise OutputPathError(f"failed to persist Markdown atomically: {exc}") from exc
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                    handle.write(markdown)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                return target
+            except OSError as exc:
+                try:
+                    os.unlink(target.name, dir_fd=directory_fd)
+                except OSError:
+                    pass
+                raise OutputPathError(f"failed to persist Markdown atomically: {exc}") from exc
+        raise OutputPathError("no collision-free output path after 1001 attempts")
+    finally:
+        os.close(directory_fd)
 
 
 def _validate_markdown_path(path: Path) -> None:

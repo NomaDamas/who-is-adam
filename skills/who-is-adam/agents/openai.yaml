@@ -1,0 +1,6 @@
+interface:
+  display_name: "Who is ADAM?"
+  short_description: "Desk-check and peer-review academic PDFs"
+  default_prompt: "Use $who-is-adam to review this local academic paper PDF."
+policy:
+  allow_implicit_invocation: true

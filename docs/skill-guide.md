@@ -4,16 +4,16 @@ Korean translation: [ko/skill-guide.md](ko/skill-guide.md).
 
 ## Purpose and supported workflow
 
-`who-is-adam` is an implementation-grounded ICML 2026 Main Track PDF review assistant. The supported workflow is the one wired through `who_is_adam.cli.review` and `who_is_adam.review.orchestrator.run_review`: read one local PDF, extract structure, apply safety and ICML desk-reject gates, run independent specialist reviews, synthesize them into official ICML review fields, compare public prior-work evidence where available, and persist Markdown output atomically.
+`who-is-adam` has two distinct surfaces. The primary surface is the installed Codex or Claude Code skill: the host agent reads one local PDF, performs desk checks, produces independent reviewer lenses and adversarial deliberation, and synthesizes the official ICML review fields into an evidence-grounded Markdown review. This normal skill workflow is prompt-driven and does not require Python.
 
-The current package supports the offline/fake-provider path for deterministic operation and tests. Hosted LLM configuration fields exist in `who_is_adam.config`, but `run_review` raises `ReviewOrchestrationError` for hosted providers because hosted LLM clients are not wired in this checkpoint.
+The secondary surface is the Python CLI wired through `who_is_adam.cli.review` and `who_is_adam.review.orchestrator.run_review`. It provides deterministic offline/fake-provider contract checks, extraction gates, and atomic persistence for development and diagnostics. Hosted LLM configuration fields exist, but hosted CLI clients are not wired in this checkpoint.
 
 ## Installation and CLI help
 
-Install from the GitHub checkout in a Python 3.11+ virtual environment:
+Python is optional for normal plugin use. Install it only when developing the CLI or running deterministic offline checks:
 
 ```bash
-git clone https://github.com/kwon/who-is-adam.git
+git clone https://github.com/NomaDamas/who-is-adam.git
 cd who-is-adam
 python3.11 -m venv .venv
 source .venv/bin/activate
@@ -26,55 +26,45 @@ OCR is optional. Enable the extra with `python -m pip install -e '.[ocr]'` and i
 
 ## Install as an Agent Skill
 
-The repository ships the custom runtime skill source at `skills/who-is-adam/`; the expected entry point is `skills/who-is-adam/SKILL.md`. Install that directory into the agent runtime, and install the Python package/CLI in the environment where the agent will run commands. The skill is not a fifth default GJC workflow and is not bundled into GJC by default.
+The repository ships the skill at `skills/who-is-adam/SKILL.md` and plugin manifests for both Claude Code and Codex. Plugin installation is the recommended path and does not require the Python package.
 
-Project-local GJC installation:
-
-```bash
-mkdir -p .gjc/skills
-cp -R skills/who-is-adam .gjc/skills/who-is-adam
-python -m pip install -e .
-```
-
-User-global GJC installation:
-
-```bash
-mkdir -p ~/.gjc/skills
-cp -R skills/who-is-adam ~/.gjc/skills/who-is-adam
-python -m pip install -e .
-```
-
-Project-local Claude-style custom skill installation:
-
-```bash
-mkdir -p .claude/skills
-cp -R skills/who-is-adam .claude/skills/who-is-adam
-python -m pip install -e .
-```
-
-User-global Claude-style custom skill installation:
-
-```bash
-mkdir -p ~/.claude/skills
-cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
-python -m pip install -e .
-```
-
-Invocation where slash skills are supported:
+Claude Code plugin installation:
 
 ```text
-/skill:who-is-adam /path/to/paper.pdf
+/plugin marketplace add NomaDamas/who-is-adam
+/plugin install who-is-adam
+/who-is-adam /path/to/paper.pdf
 ```
 
-For hosts that do not support `/skill:who-is-adam` or other slash-skill syntax, use a `natural-language trigger` fallback that names the installed custom skill and the local PDF path. Example prompt: "Use the who-is-adam skill to review /Users/kwon/papers/example-paper.pdf." The `SKILL.md` orchestration layer should translate that request into the supported CLI invocation, including required runtime acknowledgements and offline settings when applicable. The Python CLI remains the execution surface that reads PDFs, applies gates, generates fake/offline review output, and writes Markdown. The offline fake limitation still applies: deterministic fake LLM output and `unavailable` external evidence are for contract testing, not production review quality.
+Codex plugin installation:
+
+```bash
+codex plugin marketplace add NomaDamas/who-is-adam
+codex plugin add who-is-adam@who-is-adam
+```
+
+Codex invocation:
+
+```text
+Use $who-is-adam to review /path/to/paper.pdf.
+```
+
+Manual skill-directory installation remains available for runtimes without plugin support:
+
+```bash
+cp -R skills/who-is-adam ~/.claude/skills/who-is-adam
+cp -R skills/who-is-adam ~/.codex/skills/who-is-adam
+```
+
+For hosts without slash skills, use a natural-language trigger naming the installed skill and local PDF. The `SKILL.md` workflow itself is the review execution surface. The Python CLI is optional and its fake output remains contract-test data, not production review quality.
 
 ## Environment setup
 
-For the current implemented path, set `WHO_IS_ADAM_OFFLINE=true` or pass `--offline`. Keep `--llm-policy` and `--code-of-conduct-ack` explicit on every CLI review run. Hosted provider environment variables may be parsed by `ReviewConfig`, but they do not enable hosted production review generation in this checkpoint.
+Normal plugin use requires no environment variables. For optional CLI checks, set `WHO_IS_ADAM_OFFLINE=true` or pass `--offline`, and keep `--llm-policy` plus `--code-of-conduct-ack` explicit. Hosted provider variables do not enable hosted CLI review generation in this checkpoint.
 
 ## Current offline/fake limitation
 
-Offline fake reviews are deterministic contract tests for orchestration, refusal, rendering, and output persistence. They are not real paper-quality reviews, do not use hosted LLM reasoning, and record unavailable external provider evidence as `unavailable` instead of fixture-backed production claims.
+This limitation applies to the optional Python CLI, not the normal installed skill. Offline fake reviews are deterministic contract tests for orchestration, refusal, rendering, and output persistence; they are not real paper-quality reviews. Real plugin reviews are performed by the host agent, while hosted production review generation remains unavailable in the CLI. Fake CLI output must not be presented as real paper analysis.
 
 ## Input/output contract
 

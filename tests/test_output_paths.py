@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from who_is_adam.output.paths import collision_safe_path, persist_markdown_atomic
+import pytest
+
+from who_is_adam.output.paths import OutputPathError, collision_safe_path, persist_markdown_atomic
 
 
 def test_collision_safe_path_uses_versioned_max_plus_one(tmp_path) -> None:
@@ -25,3 +27,16 @@ def test_persist_markdown_atomic_writes_complete_versioned_file(tmp_path) -> Non
     assert output.read_text(encoding="utf-8") == "## Summary\n\nDeterministic review.\n"
     assert (folder / "test-paper_review_1.md").read_text(encoding="utf-8") == "original"
     assert not list(folder.glob("*.tmp"))
+
+
+def test_persist_markdown_atomic_rejects_symlinked_paper_folder(tmp_path) -> None:
+    output_dir = tmp_path / "reviews"
+    outside_dir = tmp_path / "outside"
+    output_dir.mkdir()
+    outside_dir.mkdir()
+    (output_dir / "test-paper").symlink_to(outside_dir, target_is_directory=True)
+
+    with pytest.raises(OutputPathError, match="symlink"):
+        persist_markdown_atomic("review", output_dir, "Test Paper")
+
+    assert not list(outside_dir.iterdir())

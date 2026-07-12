@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -46,9 +47,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    plugin_root = Path(__file__).resolve().parents[3]
+    cli_path = plugin_root / "src/who_is_adam/cli.py"
+    if not cli_path.is_file():
+        print(f"Bundled who-is-adam CLI source is unavailable: {cli_path}", file=sys.stderr)
+        return 127
+
+    env = os.environ.copy()
+    source_path = str(plugin_root / "src")
+    existing_python_path = env.get("PYTHONPATH")
+    env["PYTHONPATH"] = (
+        f"{source_path}{os.pathsep}{existing_python_path}" if existing_python_path else source_path
+    )
 
     command = [
-        "who-is-adam",
+        sys.executable,
+        str(cli_path),
         "review",
         str(args.pdf_path),
         "--output-dir",
@@ -60,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.offline:
         command.append("--offline")
 
-    completed = subprocess.run(command, shell=False, check=False)
+    completed = subprocess.run(command, shell=False, check=False, env=env)
     return completed.returncode
 
 

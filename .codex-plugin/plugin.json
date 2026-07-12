@@ -1,7 +1,7 @@
 {
   "name": "who-is-adam",
-  "version": "0.1.0",
-  "description": "Evidence-grounded ICML PDF review assistant for agent runtimes.",
+  "version": "0.2.0",
+  "description": "Self-contained desk and academic manuscript review skill for Codex.",
   "author": {
     "name": "NomaDamas",
     "url": "https://github.com/NomaDamas"
@@ -18,8 +18,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "who-is-adam",
-    "shortDescription": "Review ICML-style PDFs with evidence-grounded checks.",
-    "longDescription": "Installs the who-is-adam agent skill for local ICML-style PDF review workflows. The skill calls the who-is-adam CLI for deterministic offline checks and Markdown review artifact generation.",
+    "shortDescription": "Desk-check and peer-review academic PDFs.",
+    "longDescription": "Installs the Who is ADAM skill for direct desk checks, multi-perspective manuscript review, adversarial deliberation, and evidence-grounded Markdown output. Python CLI checks are optional diagnostics.",
     "developerName": "NomaDamas",
     "category": "Productivity",
     "capabilities": [
@@ -28,9 +28,9 @@
     ],
     "websiteURL": "https://github.com/NomaDamas/who-is-adam",
     "defaultPrompt": [
-      "Use who-is-adam to review this local ICML PDF.",
-      "Run an offline who-is-adam smoke test.",
-      "Check this paper for ICML review readiness."
+      "Use $who-is-adam to review this local academic paper PDF.",
+      "Use $who-is-adam in desk-only mode on this submission.",
+      "Use $who-is-adam to focus on this paper's methodology."
     ],
     "brandColor": "#2563EB"
   }

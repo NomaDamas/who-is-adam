@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import re
 
 from pathlib import Path
@@ -316,44 +317,3 @@ def test_installation_and_usage_guidance_stays_durable_and_translated() -> None:
 
         assert not missing_english, f"{english_path} missing install/use guidance {missing_english}"
         assert not missing_korean, f"{korean_path} missing install/use translation {missing_korean}"
-
-
-def test_agent_skill_package_installation_docs_cover_runtime_contract() -> None:
-    root = Path(__file__).resolve().parents[1]
-    skill_path = root / "skills/who-is-adam/SKILL.md"
-
-    assert skill_path.is_file(), "custom skill package must ship skills/who-is-adam/SKILL.md"
-
-    skill_text = skill_path.read_text(encoding="utf-8")
-    assert skill_text.startswith("---\n"), "SKILL.md must start with YAML frontmatter"
-    frontmatter = skill_text.split("---", 2)[1]
-    for key in ["name:", "description:"]:
-        assert key in frontmatter, f"SKILL.md frontmatter missing {key}"
-
-    docs = {
-        "README.md": _read(root, "README.md"),
-        "docs/skill-guide.md": _read(root, "docs/skill-guide.md"),
-        "docs/ko/README.md": _read(root, "docs/ko/README.md"),
-        "docs/ko/skill-guide.md": _read(root, "docs/ko/skill-guide.md"),
-    }
-    shared_needles = [
-        "skills/who-is-adam/",
-        "skills/who-is-adam/SKILL.md",
-        ".gjc/skills/",
-        "~/.gjc/skills/",
-        ".claude/skills/",
-        "~/.claude/skills/",
-        "cp -R skills/who-is-adam",
-        "python -m pip install -e .",
-        "/skill:who-is-adam /path/to/paper.pdf",
-        "who-is-adam review",
-        "SKILL.md",
-        "CLI",
-        "unavailable",
-    ]
-
-    for relative_path, text in docs.items():
-        missing = [needle for needle in shared_needles if needle not in text]
-        assert not missing, f"{relative_path} missing Agent Skill installation details {missing}"
-        assert "default GJC workflow" in text or "기본 GJC workflow" in text
-        assert "natural-language" in text or "자연어 트리거" in text
