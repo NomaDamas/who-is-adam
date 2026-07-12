@@ -1,91 +1,96 @@
 # who-is-adam
 
-## 제품 제안 요약
+English is the default project documentation. Current English docs: [product proposal](docs/product-proposal.md), [operator guide](docs/operator-guide.md), [evidence policy](docs/evidence-policy.md), [implementation checkpoints](docs/implementation-checkpoints.md), and [skill guide](docs/skill-guide.md). Korean translations are available under `docs/ko/`, starting with [docs/ko/README.md](docs/ko/README.md).
 
-`who-is-adam`은 ICML 2026 Main Track 논문 PDF를 대상으로 하는 리뷰 보조 스킬의 제안 문서입니다. 현재 상태는 **문서 우선 제안 단계**이며, 이 문서는 아직 CLI나 라이브러리가 구현되었다고 주장하지 않습니다. 계획된 도구는 단일 PDF를 안전하게 읽고, ICML 2026 Main Track의 공식 제출 제한과 리뷰 양식을 기준으로 점검하며, 논문 내부 근거와 외부 메타데이터 출처를 분리해 Markdown 리뷰 초안을 저장합니다.
+## Product proposal summary
 
-핵심 목표는 다음과 같습니다.
+`who-is-adam` is an ICML 2026 Main Track PDF review assistant. The project started as a docs-first proposal and now includes implemented checkpoints for an offline/fake-provider CLI, PDF structure extraction, safety gates, ICML desk checks, external evidence clients, specialist/synthesis review generation, and Markdown output persistence. Hosted LLM clients and production review-quality guarantees are not claimed as complete yet. The tool reads one local PDF, checks it against ICML 2026 Main Track submission limits and review-form constraints, separates paper-internal evidence from external metadata, and saves an evidence-grounded Markdown review draft.
 
-- PDF에서 제목, 초록, 본문 섹션, 표, 그림, 수식, 참고문헌, 페이지 단위 근거를 추출한다.
-- 낮은 품질의 스캔, 손상/암호화 PDF, 프롬프트 인젝션 의심 입력을 안전하게 거절한다.
-- ICML 2026 Main Track 제출 제한을 기준으로 단일 PDF, 50MB 이하, 본문 8쪽 제한, 익명성, LaTeX 형식 관련 신호를 점검한다.
-- Crossref, Semantic Scholar, arXiv, 공개 OpenReview 근거를 사용하되, 확인되지 않은 사실은 추측하지 않는다.
-- 독립 전문 리뷰 관점을 합성해 ICML Main Track의 공식 필드와 점수 범위에 맞춘 Markdown을 만든다.
+Core goals:
 
-## 왜 이 도구가 필요한가
+- Extract title, abstract, body sections, tables, figures, equations, references, and page-level evidence from a PDF.
+- Safely refuse low-quality scans, damaged or encrypted PDFs, and suspected prompt-injection inputs.
+- Check ICML 2026 Main Track constraints for a single PDF, maximum 50 MB file size, 8-page main-body limit, anonymity, and LaTeX-format-related signals.
+- Use Crossref, Semantic Scholar, arXiv, and public OpenReview evidence without inventing unverified facts.
+- Synthesize independent specialist-review perspectives into Markdown that follows the official ICML Main Track fields and score ranges.
 
-리뷰어는 논문 품질, 규정 준수, 인용 정확성, 안전한 LLM 사용 정책을 동시에 확인해야 합니다. 이 도구는 리뷰어의 판단을 대체하지 않고, 반복적인 근거 수집과 형식 검증을 보조합니다. 특히 PDF 본문과 외부 API 응답을 모두 신뢰할 수 없는 입력으로 취급해, 논문 안의 명령문이나 외부 메타데이터 오류가 리뷰 지침을 덮어쓰지 못하게 하는 것이 중요합니다.
+## Why this tool is needed
 
-## 빠른 시작(예정 CLI)
+Reviewers need to reason about paper quality, policy compliance, citation accuracy, and safe LLM usage at the same time. This tool does not replace reviewer judgment; it reduces repetitive evidence collection and formatting work. The design treats both PDF contents and external API responses as untrusted inputs so that instructions embedded in a paper, or errors in outside metadata, cannot override the review policy.
 
-아래 명령은 구현 후 제공될 예정인 인터페이스입니다. 현재 문서 체크포인트에서는 제품 코드가 아직 존재하지 않습니다.
+## Quick start CLI
+
+The offline/fake-provider CLI path is implemented and can save contract-test review drafts without network access or real API keys.
 
 ```bash
-who-is-adam review paper.pdf --output-dir reviews --llm-policy "<assigned policy>" --code-of-conduct-ack
+who-is-adam review paper.pdf --output-dir reviews --llm-policy "<assigned policy>" --code-of-conduct-ack --offline
 ```
 
-예정 인자 의미:
+Arguments:
 
-- `paper.pdf`: 로컬 ICML 2026 Main Track 단일 PDF.
-- `--output-dir`: 리뷰 Markdown과 진단 파일을 저장할 루트 디렉터리.
-- `--llm-policy`: 리뷰어가 배정받은 ICML LLM 사용 정책의 이름 또는 원문.
-- `--code-of-conduct-ack`: ICML 행동 강령 확인을 런타임 메타데이터에 기록했다는 명시적 승인.
-- `--offline`: 구현 후 테스트/오프라인 모드에서 fake 제공자와 고정 fixture만 사용한다.
+- `paper.pdf`: one local ICML 2026 Main Track PDF.
+- `--output-dir`: root directory for saved review Markdown and diagnostics.
+- `--llm-policy`: the assigned ICML LLM-use policy name or text. Required.
+- `--code-of-conduct-ack`: explicit acknowledgement that the ICML code of conduct was checked and recorded in runtime metadata. Required.
+- `--offline`: run with the fake LLM and record external provider evidence as `unavailable` for test/offline mode.
 
-## 지원 범위와 제한
+Hosted LLM provider settings exist in the configuration schema, but hosted LLM clients are not wired in the current checkpoint. Do not treat the hosted-provider path as a documented production review path yet.
 
-지원 범위는 ICML 2026 Main Track PDF 리뷰 보조로 한정됩니다. 공식 확인된 제한은 다음과 같이 문서화합니다.
+## Scope and limits
 
-- 제출물은 단일 PDF여야 하며 최대 50MB입니다.
-- 메인 본문은 8쪽까지 허용되고, 참고문헌과 부록은 본문 뒤에 둘 수 있습니다.
-- 제출물은 익명화되어야 하며, LaTeX 형식 요구사항과 페이지/형식 위반은 자동 거절 사유가 될 수 있습니다.
-- 리뷰어는 배정된 LLM 정책, 비밀유지, 전문적이고 건설적인 태도, 행동 강령 확인을 따라야 합니다.
-- 공식 Main Track 리뷰 점수 범위는 Soundness/Presentation/Significance/Originality 1-4, Overall Recommendation 1-6, Confidence 1-5입니다.
+Scope is limited to ICML 2026 Main Track PDF review assistance. Documented official limits and reviewer obligations are:
 
-비지원 범위:
+- A submission must be a single PDF and at most 50 MB.
+- The main body may be up to 8 pages; references and appendices may follow the main body.
+- Submissions must be anonymized; LaTeX format requirements and page/format violations may be automatic desk-reject reasons.
+- Reviewers must follow the assigned LLM policy, confidentiality requirements, professional and constructive conduct expectations, and code-of-conduct acknowledgement.
+- Official Main Track review score ranges are Soundness/Presentation/Contribution 1-4, Rating 1-6, and Confidence 1-5.
 
-- Position Track 리뷰.
-- OpenReview 또는 ICML 시스템에 실제 제출.
-- 논문 수정, 재작성, 저자 대리 행위.
-- 공개 근거가 없는 OpenReview 과거 장단점 생성.
-- 모든 스캔 PDF에 대한 OCR 성공 보장.
+Out of scope:
 
-## 안전한 거절 정책
+- Position Track reviews.
+- Actual submission to OpenReview or ICML systems.
+- Editing, rewriting, or acting on behalf of paper authors.
+- Generating historical OpenReview strengths or weaknesses without public evidence.
+- Guaranteeing OCR success for every scanned PDF.
+- Operational review generation through hosted LLM providers in the current checkpoint.
 
-도구는 리뷰를 생성하기 전에 실패해야 할 입력을 먼저 거절하는 방향으로 설계됩니다. 다음 상황에서는 공식 리뷰 Markdown을 저장하지 않고, 운영자가 이해할 수 있는 진단을 반환해야 합니다.
+## Safe refusal policy
 
-- PDF가 아니거나, 존재하지 않거나, 50MB를 초과하거나, 손상/암호화되어 구조 추출이 불가능한 경우.
-- 텍스트 밀도나 OCR 신뢰도가 낮아 논문 내용을 충분히 읽을 수 없는 경우.
-- PDF 본문에 리뷰어/시스템 지시를 무시하라는 명령, 점수 조작 요청, 도구 정책 변경 요구 등 프롬프트 인젝션 신호가 있는 경우.
-- LLM 제공자가 JSON schema 제약 출력을 지원하지 않거나, 필수 모델/API 키 설정이 빠졌거나, 검증된 JSON을 반복해서 만들지 못하는 경우.
+The tool is designed to refuse inputs that cannot support a trustworthy review before generating the official review Markdown. In these cases it should not save a review Markdown file; it should return operator-readable diagnostics instead:
 
-안전 거절은 논문 품질 평가가 아니라 입력 또는 실행 환경이 신뢰 가능한 리뷰 생성을 허용하지 않는다는 판단입니다.
+- The input is not a PDF, is missing, exceeds 50 MB, or is damaged/encrypted so that structure extraction cannot proceed.
+- Text density or OCR confidence is too low to read the paper reliably.
+- The PDF contains prompt-injection signals such as instructions to ignore reviewer/system instructions, manipulate scores, or change tool policy.
+- The configured LLM provider does not support constrained JSON-schema output, required model/API-key settings are missing, or valid JSON cannot be produced after retries.
 
-## 증거 정책
+A safe refusal is not a paper-quality judgment. It means the input or runtime environment does not permit reliable review generation.
 
-모든 판단은 근거 출처를 구분해야 합니다.
+## Evidence policy
 
-- PDF 내부 근거: 페이지, 섹션, 인용된 텍스트 span을 기록합니다.
-- 외부 메타데이터: Crossref, Semantic Scholar, arXiv는 참고문헌 사실 확인 보조로만 사용합니다.
-- OpenReview: 공개 OpenReview 근거가 있을 때만 선행 연구의 과거 강점/약점이나 비교 근거로 사용합니다.
-- 근거 없음: API 부재, rate limit, 검색 실패, 공개 근거 없음은 `unavailable`로 남기며 추측 문장을 만들지 않습니다.
+Every judgment must distinguish its evidence source:
 
-PDF 본문, 참고문헌, 외부 리뷰 텍스트는 모두 신뢰 경계 밖의 입력입니다. 이 데이터는 리뷰 지침을 바꾸거나 시스템 규칙을 덮어쓸 수 없습니다.
+- PDF-internal evidence: record page, section, and quoted text span.
+- External metadata: use Crossref, Semantic Scholar, and arXiv only as reference fact-checking aids.
+- OpenReview: use prior public strengths, weaknesses, or comparison evidence only when public OpenReview evidence exists.
+- No evidence: leave API absence, rate limits, search failures, and lack of public evidence as `unavailable`; do not invent claims.
 
-## 출력 위치와 파일 이름
+PDF body text, references, and external review text are all outside the trust boundary. They cannot change review instructions or override system rules.
 
-구현 후 성공한 리뷰는 논문 제목을 정규화한 디렉터리 아래에 버전 번호가 붙은 Markdown으로 저장합니다.
+## Output location and file names
+
+A successful review is saved as versioned Markdown under a directory derived from the normalized paper title:
 
 ```text
 <output-dir>/<normalized_title>/<normalized_title>_review_{n}.md
 ```
 
-`normalized_title`은 내부 slug/path sanitizer가 만든 파일 시스템 안전 이름입니다. `n`은 같은 디렉터리에 이미 있는 리뷰 번호의 최댓값에 1을 더한 값입니다. 예를 들어 `reviews/a_study_of_adam/a_study_of_adam_review_3.md`가 존재하면 다음 저장 파일은 `a_study_of_adam_review_4.md`가 됩니다. 충돌이 감지되면 원자적 쓰기와 번호 재계산으로 기존 결과를 덮어쓰지 않아야 합니다.
+`normalized_title` is a filesystem-safe name produced by the internal slug/path sanitizer. `n` is one greater than the largest existing review number in the same directory. For example, if `reviews/a_study_of_adam/a_study_of_adam_review_3.md` exists, the next saved file is `a_study_of_adam_review_4.md`. Collision handling must avoid overwriting previous results by using atomic writes and recomputing the review number.
 
-## 환경 변수와 제공자 요약
+## Environment variables and provider summary
 
-운영 환경 변수, fake/offline 모드, 제공자별 실패 의미는 [운영자 가이드](docs/ko/operator-guide.md)의 `환경 변수 매트릭스`를 따릅니다. 주요 제공자는 LLM, OpenReview, Semantic Scholar, Crossref, arXiv, 선택적 OCR/Tesseract입니다.
+Runtime environment variables, fake/offline mode, and provider-specific failure semantics are documented in the English [operator guide](docs/operator-guide.md). The main providers are LLM, OpenReview, Semantic Scholar, Crossref, arXiv, and optional OCR/Tesseract.
 
-## 개발/검증 체크포인트
+## Development and verification checkpoints
 
-단계별 파일 범위, 검증 명령, 기대 동작, 커밋 메시지는 [구현 체크포인트](docs/ko/implementation-checkpoints.md)에 정리되어 있습니다. 현재 체크포인트는 Korean docs-first 문서만 포함하며, 제품 코드와 `.gjc` 파일은 변경하지 않습니다.
+Step-by-step file scope, verification commands, expected behavior, and commit messages are documented in the English [implementation checkpoints](docs/implementation-checkpoints.md). The project has progressed beyond the original docs-only checkpoint: product code and tests now exist for the offline CLI/review path.
